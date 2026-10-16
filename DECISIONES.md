@@ -26,6 +26,6 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 - **Prestigio**: disponible con un lado al nivel 200; reinicia ambos lados; puntos = Σ floor(nivel/20) por lado (20 con ambos al 200); cada punto +25 % a toda la producción. Se conservan logros, ajustes y estadísticas.
 
 ## Arte y audio
-- Sin assets externos: sprites pixel art procedurales dibujados en canvas a baja resolución. Si existe `public/assets/male.png` o `female.png` (hoja de 9 fotogramas, uno por etapa) se usa en su lugar.
+- Sin assets externos: sprites pixel art procedurales dibujados en canvas a baja resolución. El arte final se declara en `public/assets/assets.json` (tira de 9 fotogramas, uno por etapa); así no se piden archivos inexistentes y no hay 404 en consola.
 - Mascotas no explícitas: un cohete (lado masculino) y una almeja (lado femenino), con gotas, onomatopeyas y confeti.
 - Sonido y música chiptune con Web Audio API, sin dependencias.

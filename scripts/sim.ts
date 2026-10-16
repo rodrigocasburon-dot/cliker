@@ -50,8 +50,11 @@ interface SimResult {
  * «activo» (--play=activo): sigue haciendo clicks al mismo ritmo todo el tiempo.
  */
 const PLAY = (args.play ?? 'normal') as 'normal' | 'activo';
+/** Clicks/s del jugador activo (suficiente para mantener el combo en ambos lados). */
+const ACTIVE_CPS = 6;
 function humanCpsAt(t: number, base: number): number {
-  if (PLAY === 'activo' || t < 1800) return base;
+  if (PLAY === 'activo') return ACTIVE_CPS;
+  if (t < 1800) return base;
   if (t < 4 * 3600) return base * 0.25;
   return base * 0.1;
 }

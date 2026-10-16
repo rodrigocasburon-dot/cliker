@@ -1,0 +1,5 @@
+{
+  "_comment": "Arte final opcional. Pon aquí el nombre del PNG (tira de 9 fotogramas cuadrados, uno por etapa) o null para usar los sprites procedurales.",
+  "male": null,
+  "female": null
+}

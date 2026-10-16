@@ -1,7 +1,7 @@
 /**
  * Sprites pixel art procedurales (placeholder). Todo se dibuja a baja resolución en canvas y se
- * escala con `image-rendering: pixelated`. Para usar arte final, deja en public/assets/
- * `male.png` / `female.png`: una tira horizontal de 9 fotogramas (uno por etapa) de 64×64 px.
+ * escala con `image-rendering: pixelated`. Para usar arte final, deja el PNG en public/assets/
+ * (tira horizontal de 9 fotogramas cuadrados, uno por etapa) y decláralo en assets.json.
  */
 import type { SideId } from '../core/state';
 
@@ -291,13 +291,23 @@ function drawClamTop(stage: number): HTMLCanvasElement {
 const cache = new Map<string, HTMLCanvasElement>();
 const external: Partial<Record<SideId, HTMLImageElement>> = {};
 
+/**
+ * Carga el arte final declarado en public/assets/assets.json (si lo hay). Solo se piden los
+ * archivos listados, para no provocar errores 404 en consola.
+ */
 export function loadExternalAssets(base = import.meta.env.BASE_URL ?? './'): void {
-  for (const side of ['male', 'female'] as SideId[]) {
-    const img = new Image();
-    img.onload = () => { external[side] = img; };
-    img.onerror = () => { /* sin asset: se usan los sprites procedurales */ };
-    img.src = `${base}assets/${side}.png`;
-  }
+  fetch(`${base}assets/assets.json`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .then((cfg: Partial<Record<SideId, string | null>>) => {
+      for (const side of ['male', 'female'] as SideId[]) {
+        const file = cfg[side];
+        if (!file) continue;
+        const img = new Image();
+        img.onload = () => { external[side] = img; };
+        img.src = `${base}assets/${file}`;
+      }
+    })
+    .catch(() => { /* sin configuración: sprites procedurales */ });
 }
 
 /** Fotograma externo (si existe) para la etapa indicada. */

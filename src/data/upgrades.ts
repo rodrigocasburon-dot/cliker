@@ -89,12 +89,12 @@ const MULT: UpgradeDef[] = [
     effects: [{ type: 'autoMult', value: 1.5 }] },
 
   { id: 'ch4a', group: 'ch4', family: 'mult', kind: 'oneoff', unlockLevel: 120, cost: at(120, 0.8),
-    effects: [{ type: 'comboMax', value: 50 }, { type: 'comboStepMult', value: 2 }, { type: 'clickPpsPct', value: 0.05 }] },
+    effects: [{ type: 'comboMax', value: 50 }, { type: 'comboStepMult', value: 2 }, { type: 'clickPpsPct', value: 0.07 }] },
   { id: 'ch4b', group: 'ch4', family: 'mult', kind: 'oneoff', unlockLevel: 120, cost: at(120, 0.8),
     effects: [{ type: 'allGenMult', value: 1.35 }] },
 
   { id: 'ch5a', group: 'ch5', family: 'mult', kind: 'oneoff', unlockLevel: 170, cost: at(170, 0.8),
-    effects: [{ type: 'clickPpsPct', value: 0.06 }, { type: 'autoMult', value: 1.5 }] },
+    effects: [{ type: 'clickPpsPct', value: 0.08 }, { type: 'autoMult', value: 1.5 }] },
   { id: 'ch5b', group: 'ch5', family: 'mult', kind: 'oneoff', unlockLevel: 170, cost: at(170, 0.8),
     effects: [{ type: 'allGenMult', value: 1.6 }] },
 
