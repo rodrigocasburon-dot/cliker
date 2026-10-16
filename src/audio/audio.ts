@@ -5,7 +5,7 @@ import type { SideId } from '../core/state';
 
 type Wave = OscillatorType;
 
-export type Sfx = 'click' | 'buy' | 'deny' | 'levelUp' | 'stage' | 'achievement' | 'flyCatch' | 'golden' | 'escape' | 'prestige';
+export type Sfx = 'click' | 'buy' | 'deny' | 'levelUp' | 'stage' | 'achievement' | 'flyCatch' | 'golden' | 'escape' | 'prestige' | 'problem';
 
 // Notas (Hz) — escala pentatónica de Do para que todo suene «alegre».
 const NOTE = (semitonesFromA4: number) => 440 * Math.pow(2, semitonesFromA4 / 12);
@@ -132,6 +132,12 @@ class AudioEngine {
         break;
       case 'golden':
         [0, 7, 12, 16, 19, 24, 28, 31].forEach((s, i) => this.tone(NOTE(s + 3), 0.12, 'square', 0.22, i * 0.05));
+        break;
+      case 'problem':
+        // «¡Ay!»: caída de tono y golpe de ruido
+        this.tone(NOTE(base + 7), 0.35, 'sawtooth', 0.3, 0, NOTE(base - 17));
+        this.tone(NOTE(base - 5), 0.4, 'square', 0.2, 0.25, NOTE(base - 24));
+        this.noise(0.2, 0.25, 0, 800);
         break;
       case 'escape':
         this.tone(NOTE(5), 0.25, 'triangle', 0.15, 0, NOTE(-7));

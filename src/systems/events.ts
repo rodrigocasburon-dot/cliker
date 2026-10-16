@@ -4,12 +4,12 @@ import { BALANCE } from '../data/balance';
 import { computeModifiers } from './modifiers';
 import { computeRates } from './production';
 import { random } from './random';
-import { addProduction } from './economy';
+import { addCondoms, addProduction } from './economy';
 
 const F = BALANCE.fly;
 
 function flyDelayMult(state: GameState): number {
-  return Math.min(...SIDES.map((s) => computeModifiers(state.sides[s]).flyDelayMult));
+  return Math.min(...SIDES.map((s) => computeModifiers(state.sides[s], state.condomUpgrades).flyDelayMult));
 }
 
 export function scheduleNextFly(state: GameState): void {
@@ -30,8 +30,9 @@ export function updateFly(state: GameState): 'spawn' | 'escape' | null {
   }
   if (state.time >= state.nextFlyAt) {
     const canGold = SIDES.some((s) => state.sides[s].level >= F.golden.fromLevel);
+    const extra = computeModifiers(state.sides.male, state.condomUpgrades).goldenChance;
     state.fly = {
-      golden: canGold && random() < F.golden.chance,
+      golden: canGold && random() < F.golden.chance + extra,
       spawnedAt: state.time,
       expiresAt: state.time + F.lifetimeSeconds,
     };
@@ -42,6 +43,7 @@ export function updateFly(state: GameState): 'spawn' | 'escape' | null {
 
 export interface FlyReward {
   golden: boolean;
+  condoms: number;
   perSide: Record<SideId, { boostSeconds: number; burst: ReturnType<typeof D> }>;
 }
 
@@ -57,7 +59,9 @@ export function catchFly(state: GameState): FlyReward | null {
   state.fly = null;
   state.stats.flies++;
   if (fly.golden) state.stats.goldenFlies++;
-  const reward: FlyReward = { golden: fly.golden, perSide: {} as FlyReward['perSide'] };
+  const condoms = fly.golden ? BALANCE.condoms.perGoldenFly : BALANCE.condoms.perFly;
+  addCondoms(state, condoms);
+  const reward: FlyReward = { golden: fly.golden, condoms, perSide: {} as FlyReward['perSide'] };
   for (const id of SIDES) {
     const side = state.sides[id];
     const r = computeRates(state, id);

@@ -5,22 +5,24 @@ import { ACHIEVEMENTS, type AchievementDef } from '../data/achievements';
 import { BALANCE } from '../data/balance';
 import { GENERATORS, type GeneratorDef } from '../data/generators';
 import { UPGRADES, type Effect, type UpgradeDef } from '../data/upgrades';
+import { CONDOM_UPGRADES } from '../data/condoms';
 import { ES, t } from '../i18n/es';
 import { achievementProgress } from '../systems/achievements';
 import { canPrestige, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
 import {
-  bestPurchase, effectiveHumanCps, estimatedIncome, evaluatePurchase, generatorCost, isExcluded, isGeneratorUnlocked,
+  bestPurchase, condomCost, condomLevel, effectiveHumanCps, estimatedIncome, evaluatePurchase, generatorCost, isExcluded, isGeneratorUnlocked,
   isMaxed, isUpgradeAvailable, isUpgradeUnlocked, maxAffordable, upgradeCost, upgradeLevel, type Purchase, type PurchaseEval,
 } from '../systems/shop';
 import { el, setText, toggleClass } from './dom';
 
-export type TabId = 'click' | 'gen' | 'mult' | 'ach' | 'stats' | 'settings';
+export type TabId = 'click' | 'gen' | 'mult' | 'condoms' | 'ach' | 'stats' | 'settings';
 export type BuyAmount = 1 | 10 | 'max';
 
 export interface ShopActions {
   buy(side: SideId, p: Purchase, amount: number): void;
   buyBest(side: SideId): void;
+  buyCondom(id: string): void;
   prestige(): void;
   settingsChanged(): void;
   exportSave(): void;
@@ -52,6 +54,8 @@ export function describeEffect(e: Effect, side: SideId): string {
     case 'genMult': return t(tpl, { gen: genName(side, e.gen), v: fmtMult(e.value) });
     case 'automation': return t(tpl, { v: BALANCE.automation.baseCps });
     case 'flyDelayMult': return t(tpl, { v: fmtMult(1 / e.value) });
+    case 'flyPower': return t(tpl, { v: e.value });
+    case 'goldenChance': return t(tpl, { v: +(e.value * 100).toFixed(1) });
     case 'buyBest': return tpl;
     default: return t(tpl, { v: fmtMult(e.value) });
   }
@@ -133,7 +137,7 @@ export class ShopView {
       female: el('button', { class: 'side-btn side-btn-female', type: 'button' }, `${ES.sides.female.emoji} ${ES.sides.female.mascot}`),
     };
     for (const s of SIDES) this.sideBtns[s].addEventListener('click', () => this.setSide(s));
-    const tabIds: TabId[] = ['click', 'gen', 'mult', 'ach', 'stats', 'settings'];
+    const tabIds: TabId[] = ['click', 'gen', 'mult', 'condoms', 'ach', 'stats', 'settings'];
     this.tabBtns = Object.fromEntries(tabIds.map((id) => {
       const b = el('button', { class: 'tab-btn', type: 'button', role: 'tab' }, ES.ui.tabs[id]);
       b.addEventListener('click', () => this.setTab(id));
@@ -196,6 +200,7 @@ export class ShopView {
       case 'gen': this.renderGenerators(st); break;
       case 'click': this.renderUpgrades(st, (u) => u.family === 'click'); break;
       case 'mult': this.renderUpgrades(st, (u) => u.family === 'mult'); break;
+      case 'condoms': this.renderCondoms(st); break;
       case 'ach': this.renderAchievements(st); break;
       case 'stats': this.renderStats(st); break;
       case 'settings': if (this.staticTabRendered !== 'settings') this.renderSettings(st); break;
@@ -248,7 +253,7 @@ export class ShopView {
       setText(row.desc, genFlavor(this.side, g.id));
       setText(row.effect, `+${formatNumber(eachPps, nt)}/s c/u${each ? ` · total ${formatNumber(each.pps, nt)}/s (${share.toFixed(share < 10 ? 1 : 0)} %)` : ''}`);
       setText(row.meta, `${t(ES.ui.beforeAfter, { a: formatNumber(e.before, nt), b: formatNumber(e.after, nt) })} · ${paybackText(e, side.resource, income)}`);
-      setText(row.btn, `${amount > 1 ? `×${amount} ` : ''}${formatNumber(cost, nt)}`);
+      setText(row.btn, `${amount > 1 ? `×${amount} ` : ''}${this.cur()} ${formatNumber(cost, nt)}`);
       const can = side.resource.gte(cost) && amount > 0;
       row.btn.disabled = !can;
       toggleClass(row.root, 'affordable', can);
@@ -259,6 +264,39 @@ export class ShopView {
       setText(row.title, '???');
       setText(row.desc, t(ES.ui.locked, { n: next.unlockLevel }));
       setText(row.btn, '🔒');
+    }
+  }
+
+  private cur(): string { return ES.ui.currency[this.side]; }
+
+  // ───────────── Condones (compartidos) ─────────────
+
+  private renderCondoms(st: GameState) {
+    const ids = ['head', ...CONDOM_UPGRADES.map((u) => u.id)];
+    const head = el('div', { class: 'condom-head' });
+    this.rebuild('condoms', ids, (id) => {
+      if (id === 'head') return head;
+      return makeRow(() => this.actions.buyCondom(id), 'condom-row');
+    });
+    const h = this.body.querySelector<HTMLElement>('.condom-head');
+    if (h) {
+      setText(h, '');
+      h.append(el('div', { class: 'condom-count' }, `🎈 ${st.condoms} ${ES.ui.condoms.toLowerCase()}`), el('p', { class: 'muted' }, ES.ui.condomsHelp));
+    }
+    for (const u of CONDOM_UPGRADES) {
+      const row = this.rows.get(u.id)!;
+      const lvl = condomLevel(st, u.id);
+      const [name, flavor] = ES.upgrades[u.id] ?? [u.id, ''];
+      setText(row.title, `${name} · ${t(ES.ui.condomLevel, { n: lvl, max: u.maxLevel })}`);
+      setText(row.desc, flavor);
+      setText(row.effect, `Cada nivel: ${u.effects.map((e) => describeEffect(e, this.side)).join(' · ')} (ambos lados)`);
+      setText(row.meta, '');
+      const maxed = lvl >= u.maxLevel;
+      const cost = maxed ? 0 : condomCost(u, lvl);
+      setText(row.btn, maxed ? ES.ui.max : `🎈 ${cost}`);
+      const can = !maxed && st.condoms >= cost;
+      row.btn.disabled = !can;
+      toggleClass(row.root, 'affordable', can);
     }
   }
 
@@ -314,7 +352,7 @@ export class ShopView {
       const ba = e.gain.gt(0) ? `${t(ES.ui.beforeAfter, { a: formatNumber(e.before, nt), b: formatNumber(e.after, nt) })} · ` : '';
       setText(row.meta, u.effects.some((x) => x.type === 'buyBest' || x.type.startsWith('fly')) && !e.gain.gt(0)
         ? '' : `${ba}${paybackText(e, side.resource, income)}`);
-      setText(row.btn, formatNumber(cost, nt));
+      setText(row.btn, `${this.cur()} ${formatNumber(cost, nt)}`);
       const can = side.resource.gte(cost);
       row.btn.disabled = !can;
       toggleClass(row.root, 'affordable', can);
@@ -368,7 +406,7 @@ export class ShopView {
       setText(c.gain, `${e.gain.gte(0) ? '+' : ''}${formatNumber(e.gain, nt)}/s (${pct >= 0 ? '+' : ''}${pct.toFixed(0)} %) con tu ritmo actual`);
       toggleClass(c.root, 'better', e.gain.eq(bestGain) && e.gain.gt(0));
       const cost = upgradeCost(u, 0);
-      setText(c.btn, formatNumber(cost, nt));
+      setText(c.btn, `${this.cur()} ${formatNumber(cost, nt)}`);
       c.btn.disabled = side.resource.lt(cost);
     });
   }
@@ -454,6 +492,8 @@ export class ShopView {
       [s.prestiges, String(st.stats.prestiges)],
       [s.prestigePoints, String(st.prestigePoints)],
       [s.achievements, `${Object.keys(st.achievements).length} / ${ACHIEVEMENTS.length}`],
+      [s.condoms, String(st.stats.condomsEarned)],
+      [s.problems, String(st.stats.problems)],
     ];
     const table = (list: [string, string][]) => el('dl', { class: 'kv' }, list.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
     const can = canPrestige(st);

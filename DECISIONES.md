@@ -30,3 +30,9 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 - Sin assets externos: sprites pixel art procedurales dibujados en canvas a baja resolución. El arte final se declara en `assets/assets.json` (tira de 9 fotogramas, uno por etapa); así no se piden archivos inexistentes y no hay 404 en consola.
 - Mascotas no explícitas: un cohete (lado masculino) y una almeja (lado femenino), con gotas, onomatopeyas y confeti.
 - Sonido y música chiptune con Web Audio API, sin dependencias.
+
+## Segunda versión (condones, sobreuso, skins)
+- **Condones** = moneda compartida y permanente (sobrevive al prestigio). Fuentes: +1 por nivel (+5 en múltiplos de 10), +1 por mosca (+5 dorada), +3 por logro y un 0.4 % por click manual. Sus mejoras son pequeñas por nivel pero acumulables, y algunas superan el ×1.5 de la mosca (hasta ×2.5).
+- **Sobreuso**: calor por click (3) que baja solo (14/s, ~4.7 clicks/s sostenibles por lado). Al llegar a 100: problema de 25 s (clicks ×0.1, sin combo, automatización ×0.5). Es humor cartoon: bolsa de hielo / bolsa de agua caliente y cara de «X X».
+- **Clicks y multiplicadores más fuertes**: «Dedos ágiles» +2 por nivel (hasta 20 niveles), «Técnica depurada» ×2, «Muñecas» con el doble de %, globales ×2/×3, mejoras de generador hasta ×4, combo +4 % por stack (máx. 40).
+- Para que el ritmo siga en los objetivos: **cada click automático vale el 25 % de uno manual** (si no, la automatización con clicks tan fuertes rompía la economía; además así tus clicks son los que de verdad cuentan), XP base 300 y ritmo de generadores ×90.

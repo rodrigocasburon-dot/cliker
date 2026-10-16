@@ -23,6 +23,10 @@ export interface Rates {
   autoCps: number;
   autoIncome: Decimal;
   flyBoostActive: boolean;
+  /** Multiplicador de la automatización durante la mosca (×1.5 + mejoras con condones). */
+  flyMultiplier: number;
+  /** El lado tiene un problema por sobreuso. */
+  problemActive: boolean;
   /** pps + automatización (lo que se gana sin tocar nada). */
   idleIncome: Decimal;
 }
@@ -46,6 +50,12 @@ export function comboMultiplier(side: SideState, mods: Modifiers): number {
 
 export const comboMaxStacks = (mods: Modifiers): number => BALANCE.click.combo.maxStacks + mods.comboMaxAdd;
 
+export function isProblemActive(state: GameState, side: SideState): boolean {
+  return state.time < side.problemUntil;
+}
+
+export const flyMultiplier = (mods: Modifiers): number => BALANCE.automation.flyMultiplier + mods.flyPower;
+
 export function isFlyBoostActive(state: GameState, side: SideState): boolean {
   return state.time < side.flyBoostUntil;
 }
@@ -54,8 +64,9 @@ export function isFlyBoostActive(state: GameState, side: SideState): boolean {
 export function autoCps(state: GameState, side: SideState, mods: Modifiers): number {
   if (!mods.automation) return 0;
   let cps = (BALANCE.automation.baseCps + mods.autoCpsAdd) * mods.autoMult;
-  if (isFlyBoostActive(state, side)) cps *= BALANCE.automation.flyMultiplier;
+  if (isFlyBoostActive(state, side)) cps *= flyMultiplier(mods);
   if (!state.settings.qteEnabled) cps *= BALANCE.automation.qteOffMultiplier;
+  if (isProblemActive(state, side)) cps *= BALANCE.overuse.autoMultDuringProblem;
   return cps;
 }
 
@@ -65,7 +76,7 @@ export function autoCps(state: GameState, side: SideState, mods: Modifiers): num
  */
 export function computeRates(state: GameState, id: SideId, sideOverride?: SideState): Rates {
   const side = sideOverride ?? state.sides[id];
-  const mods = computeModifiers(side);
+  const mods = computeModifiers(side, state.condomUpgrades);
   const other = state.sides[otherSide(id)];
   const levelMult = levelMultiplier(side.level);
   const synergy = synergyMultiplier(mods, other.level);
@@ -93,13 +104,14 @@ export function computeRates(state: GameState, id: SideId, sideOverride?: SideSt
     .mul(mods.clickMult * achievementMult * prestigeMult)
     .add(pps.mul(mods.clickPpsPct));
   const cps = autoCps(state, side, mods);
-  const autoIncome = clickValue.mul(cps);
+  const autoIncome = clickValue.mul(cps * BALANCE.automation.clickValueFraction);
 
   return {
     mods, globalMult, levelMult, synergy, achievementMult, prestigeMult,
     pps, genPps, clickValue,
     comboMult: comboMultiplier(side, mods), comboMax: comboMaxStacks(mods),
     autoCps: cps, autoIncome, flyBoostActive: isFlyBoostActive(state, side),
+    flyMultiplier: flyMultiplier(mods), problemActive: isProblemActive(state, side),
     idleIncome: pps.add(autoIncome),
   };
 }

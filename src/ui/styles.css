@@ -256,7 +256,7 @@ button:disabled { cursor: not-allowed; }
   background: var(--ok);
 }
 
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
 .tab-btn {
   padding: 5px 6px;
   font-size: 12px;
@@ -487,3 +487,22 @@ button:disabled { cursor: not-allowed; }
   .mascot-stage.shake { animation: none; }
   .onomato, .float-num, .announce { animation-duration: 0.6s; }
 }
+
+/* ───────── Condones y sobreuso ───────── */
+.condom-counter { font-weight: 800; font-family: var(--mono); border-color: #ff9fd0; color: #ffd6ec; }
+.condom-counter.pop { animation: pop-btn 0.35s ease-out; }
+@keyframes pop-btn { 50% { transform: scale(1.25); } }
+.tab-btn[aria-selected='true'] { color: var(--gold); }
+.condom-head { padding: 4px 2px; }
+.condom-count { font-family: var(--mono); font-size: 22px; font-weight: 800; color: #ffd6ec; }
+.condom-head p { margin: 2px 0 4px; font-size: 12px; }
+.row.condom-row .buy-btn:not(:disabled) { background: #ff9fd0; }
+
+.heat-bar { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+.heat-track { flex: 1; height: 7px; background: #140b28; border: 2px solid #0e0820; border-radius: 4px; overflow: hidden; }
+.heat-fill { height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #6be38f, #ffcf3f 60%, #ff5d5d); transition: transform 0.12s linear; }
+.heat-bar.hot .heat-track { animation: hot 0.5s ease-in-out infinite alternate; }
+@keyframes hot { to { box-shadow: 0 0 6px #ff5d5d; } }
+.side.sick { border-color: var(--danger); }
+.side.sick .chips { color: #ff9a9a; }
+.side.sick .mascot-canvas { filter: saturate(0.6); }

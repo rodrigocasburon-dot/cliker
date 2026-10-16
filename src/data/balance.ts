@@ -15,7 +15,7 @@ export const BALANCE = {
   maxLevel: 200,
   xp: {
     /** xp(n) = base · growth^n : XP para pasar del nivel n al n+1. */
-    base: 60,
+    base: 300,
     growth: 1.3,
     /** XP por unidad de recurso producido. */
     perResource: 1,
@@ -29,7 +29,7 @@ export const BALANCE = {
    */
   levelGrowth: { early: 1.03, late: 1.03, rampFrom: 20, rampTo: 70 },
   /** Escala global de la amortización nominal de los generadores (data/generators.ts): más = más lento. */
-  generatorPaybackScale: 10,
+  generatorPaybackScale: 90,
   stageEvery: 25,
   milestones: [10, 25, 50, 100, 150, 200],
 
@@ -38,8 +38,8 @@ export const BALANCE = {
     combo: {
       /** Clicks separados menos que esto mantienen el combo. */
       windowSeconds: 0.45,
-      stepBonus: 0.02,
-      maxStacks: 25,
+      stepBonus: 0.04,
+      maxStacks: 40,
     },
   },
 
@@ -47,6 +47,8 @@ export const BALANCE = {
     unlockLevel: 10,
     /** Clicks automáticos por segundo al desbloquearla. */
     baseCps: 2,
+    /** Cada click automático vale esta fracción de un click manual (los tuyos valen más). */
+    clickValueFraction: 0.25,
     /** +50 % de velocidad mientras dura el efecto de la mosca. */
     flyMultiplier: 1.5,
     /** Con los QTE desactivados la automatización recibe este bonus fijo (reducido). */
@@ -67,6 +69,34 @@ export const BALANCE = {
       burstMultiplier: 8,
       boostMultiplier: 2,
     },
+  },
+
+  /**
+   * Sobreuso: cada click manual calienta el lado y el calor baja solo. Si llega al máximo,
+   * el lado sufre un «problema» (testicular o la regla) durante un rato: sus clicks rinden
+   * mucho menos y la automatización va a medio gas.
+   */
+  overuse: {
+    heatPerClick: 3,
+    decayPerSecond: 14,
+    threshold: 100,
+    /** A partir de este calor se avisa (barra roja). */
+    warnAt: 70,
+    problemSeconds: 25,
+    clickMultDuringProblem: 0.1,
+    autoMultDuringProblem: 0.5,
+  },
+
+  /** Condones 🎈: moneda compartida entre ambos lados (data/condoms.ts). */
+  condoms: {
+    perLevel: 1,
+    /** Extra al llegar a un nivel múltiplo de 10. */
+    perTenLevels: 4,
+    perFly: 1,
+    perGoldenFly: 5,
+    perAchievement: 3,
+    /** Probabilidad de que un click manual suelte un condón. */
+    clickDropChance: 0.004,
   },
 
   /** Valor por defecto de cps humano para estimar el retorno de mejoras de click. */

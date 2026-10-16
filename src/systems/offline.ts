@@ -11,6 +11,7 @@ export interface OfflineReport {
   capped: boolean;
   gained: Record<SideId, Decimal>;
   levels: Record<SideId, number>;
+  condoms: number;
   events: GameEvent[];
 }
 
@@ -28,6 +29,7 @@ export function applyOffline(state: GameState, elapsedSeconds: number): OfflineR
   const before = Object.fromEntries(SIDES.map((id) => [id, state.sides[id].totalProduced])) as Record<SideId, Decimal>;
   const lvBefore = Object.fromEntries(SIDES.map((id) => [id, state.sides[id].level])) as Record<SideId, number>;
   const events: GameEvent[] = [];
+  const condomsBefore = state.condoms;
   if (applied > 0) {
     const steps = Math.min(OFFLINE_STEPS, Math.max(1, Math.ceil(applied)));
     const dt = applied / steps;
@@ -42,6 +44,7 @@ export function applyOffline(state: GameState, elapsedSeconds: number): OfflineR
     capped: elapsedSeconds > cap,
     gained: Object.fromEntries(SIDES.map((id) => [id, state.sides[id].totalProduced.sub(before[id]).max(D(0))])) as Record<SideId, Decimal>,
     levels: Object.fromEntries(SIDES.map((id) => [id, state.sides[id].level - lvBefore[id]])) as Record<SideId, number>,
+    condoms: state.condoms - condomsBefore,
     events,
   };
 }

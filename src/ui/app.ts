@@ -12,7 +12,7 @@ import { stageOf } from '../systems/levels';
 import { applyOffline, type OfflineReport } from '../systems/offline';
 import { canPrestige, doPrestige, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
-import { bestPurchase, buy, buyGenerator, type Purchase } from '../systems/shop';
+import { bestPurchase, buy, buyCondomUpgrade, buyGenerator, type Purchase } from '../systems/shop';
 import { el, setText } from './dom';
 import { FlyView } from './fly';
 import { nextGoal } from './goal';
@@ -32,6 +32,7 @@ export class App {
   private goalText: HTMLElement;
   private prestigeBtn: HTMLButtonElement;
   private muteBtn: HTMLButtonElement;
+  private condomEl: HTMLButtonElement;
   private rates: Record<SideId, Rates>;
   private uiAcc = 0;
   private shopAcc = 0;
@@ -48,6 +49,10 @@ export class App {
     this.shop = new ShopView(() => this.state, {
       buy: (side, p, amount) => this.onBuy(side, p, amount),
       buyBest: (side) => this.onBuyBest(side),
+      buyCondom: (id) => {
+        audio.play(buyCondomUpgrade(this.state, id) ? 'buy' : 'deny');
+        this.shop.refresh(true);
+      },
       prestige: () => this.onPrestige(),
       settingsChanged: () => this.applySettings(),
       exportSave: () => this.onExport(),
@@ -62,13 +67,15 @@ export class App {
     this.prestigeBtn.addEventListener('click', () => this.onPrestige());
     this.muteBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.settings.mute }, '🔊');
     this.muteBtn.addEventListener('click', () => { this.state.settings.muted = !this.state.settings.muted; this.applySettings(); });
+    this.condomEl = el('button', { type: 'button', class: 'head-btn condom-counter', title: ES.ui.condomsHelp }, '🎈 0');
+    this.condomEl.addEventListener('click', () => this.shop.setTab('condoms'));
     const settingsBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.tabs.settings }, '⚙️');
     settingsBtn.addEventListener('click', () => this.shop.setTab('settings'));
 
     this.rates = { male: computeRates(state, 'male'), female: computeRates(state, 'female') };
     const header = el('header', { class: 'top' }, [
       el('h1', { class: 'logo' }, [el('span', {}, '💦 '), ES.title]),
-      el('div', { class: 'head-btns' }, [this.prestigeBtn, this.muteBtn, settingsBtn]),
+      el('div', { class: 'head-btns' }, [this.condomEl, this.prestigeBtn, this.muteBtn, settingsBtn]),
     ]);
     const goal = el('div', { class: 'goal', 'aria-live': 'polite' }, [el('strong', {}, `🎯 ${ES.ui.nextGoal}: `), this.goalText]);
     mount.replaceChildren(
@@ -127,6 +134,7 @@ export class App {
       this.uiAcc = 0;
       for (const id of SIDES) this.sides[id].updateStats(this.state, this.rates[id]);
       this.prestigeBtn.hidden = !canPrestige(this.state);
+      setText(this.condomEl, `🎈 ${this.state.condoms}`);
     }
     if (this.shopAcc >= 0.25) {
       this.shopAcc = 0;
@@ -173,6 +181,22 @@ export class App {
           audio.startBuzz(this.state.fly.golden);
         }
         break;
+      case 'condoms':
+        this.condomEl.classList.remove('pop');
+        void this.condomEl.offsetWidth;
+        this.condomEl.classList.add('pop');
+        if (e.reason === 'drop') this.toasts.show(ES.ui.toasts.condomsDrop, 'ach');
+        else if (e.reason === 'achievement') this.toasts.show(t(ES.ui.toasts.condomsAchievement, { n: e.amount }));
+        else if (e.side) this.sides[e.side].announceSmall(`+${e.amount} 🎈`);
+        break;
+      case 'problem':
+        audio.play('problem', e.side);
+        this.toasts.show(ES.sides[e.side].problemToast, 'error', 4500);
+        this.sides[e.side].announce(`¡${ES.sides[e.side].problem}!`);
+        break;
+      case 'problemEnd':
+        this.toasts.show(ES.sides[e.side].problemEnd, 'muted');
+        break;
       case 'flyEscape':
         this.fly.hide();
         audio.stopBuzz();
@@ -218,8 +242,9 @@ export class App {
     audio.play(reward.golden ? 'golden' : 'flyCatch');
     const boost = Math.max(...SIDES.map((s) => reward.perSide[s].boostSeconds));
     if (reward.golden) this.toasts.show(ES.ui.toasts.goldenFly, 'big');
-    if (boost > 0) this.toasts.show(t(ES.ui.toasts.flyCaught, { t: formatDuration(boost) }), 'fly');
-    else this.toasts.show(ES.ui.toasts.flyBurst, 'fly');
+    const m = this.rates.male.flyMultiplier.toFixed(1);
+    if (boost > 0) this.toasts.show(t(ES.ui.toasts.flyCaught, { m, t: formatDuration(boost), c: reward.condoms }), 'fly');
+    else this.toasts.show(t(ES.ui.toasts.flyBurst, { c: reward.condoms }), 'fly');
     for (const s of SIDES) {
       const b = reward.perSide[s].burst;
       if (b.gt(0)) this.sides[s].announce(`+${formatNumber(b, this.state.settings.notation)}`);
@@ -298,6 +323,7 @@ export class App {
       el('li', {}, `${ES.sides[s].emoji} ${formatNumber(r.gained[s], nt)} ${ES.sides[s].resourceShort}${r.levels[s] > 0 ? ` · ${t(ES.ui.offline.levels, { n: r.levels[s] })}` : ''}`)));
     openModal(ES.ui.offline.title, [
       t(ES.ui.offline.body, { t: formatDuration(r.elapsed) }), list,
+      ...(r.condoms > 0 ? [t(ES.ui.offline.condoms, { n: r.condoms })] : []),
       ...(r.capped ? [t(ES.ui.offline.capped, { h: BALANCE.offline.capHours })] : []),
     ], [{ label: ES.ui.offline.ok, primary: true }]);
   }

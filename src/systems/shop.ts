@@ -3,6 +3,7 @@ import type { GameState, SideId, SideState } from '../core/state';
 import { BALANCE } from '../data/balance';
 import { GENERATORS, GENERATOR_COST_GROWTH, type GeneratorDef } from '../data/generators';
 import { UPGRADES, UPGRADE_BY_ID, type UpgradeDef } from '../data/upgrades';
+import { CONDOM_BY_ID, type CondomUpgradeDef } from '../data/condoms';
 import { computeRates } from './production';
 
 export const GEN_BY_ID: Record<string, GeneratorDef> = Object.fromEntries(GENERATORS.map((g) => [g.id, g]));
@@ -167,4 +168,26 @@ export function bestPurchase(state: GameState, id: SideId, affordableOnly = true
 
 export function buy(state: GameState, id: SideId, p: Purchase): boolean {
   return p.kind === 'gen' ? buyGenerator(state, id, p.id) : buyUpgrade(state, id, p.id);
+}
+
+// ───────────── Tienda de condones (compartida) ─────────────
+
+export function condomCost(def: CondomUpgradeDef, level: number): number {
+  return Math.ceil(def.cost * Math.pow(def.costGrowth, level));
+}
+
+export function condomLevel(state: GameState, id: string): number {
+  return state.condomUpgrades[id] ?? 0;
+}
+
+export function buyCondomUpgrade(state: GameState, id: string): boolean {
+  const def = CONDOM_BY_ID[id];
+  if (!def) return false;
+  const lvl = condomLevel(state, id);
+  if (lvl >= def.maxLevel) return false;
+  const cost = condomCost(def, lvl);
+  if (state.condoms < cost) return false;
+  state.condoms -= cost;
+  state.condomUpgrades[id] = lvl + 1;
+  return true;
 }

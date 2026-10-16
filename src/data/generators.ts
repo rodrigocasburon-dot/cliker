@@ -47,7 +47,7 @@ export const GENERATOR_TIERS: { owned: number; costFactor: number; mult: number 
   { owned: 10, costFactor: 20, mult: 2 },
   { owned: 25, costFactor: 500, mult: 2 },
   { owned: 50, costFactor: 5e4, mult: 2 },
-  { owned: 100, costFactor: 5e7, mult: 2 },
-  { owned: 150, costFactor: 5e10, mult: 2 },
-  { owned: 200, costFactor: 5e13, mult: 2 },
+  { owned: 100, costFactor: 5e7, mult: 3 },
+  { owned: 150, costFactor: 5e10, mult: 3 },
+  { owned: 200, costFactor: 5e13, mult: 4 },
 ];

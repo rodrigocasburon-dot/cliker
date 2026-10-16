@@ -5,7 +5,17 @@
  */
 import type { SideId } from '../core/state';
 
-export type Expression = 'idle' | 'blink' | 'happy';
+export type Expression = 'idle' | 'blink' | 'happy' | 'hurt';
+
+/** Accesorios que aparecen según las mejoras compradas (se combinan como bits). */
+export const LOOK = {
+  antenna: 1, // automatización
+  sweatband: 2, // mejoras de click
+  balloon: 4, // mejoras con condones
+  swatter: 8, // mejoras de la mosca
+  heart: 16, // química de pareja
+  goldTrim: 32, // muchas mejoras de click
+} as const;
 
 export interface Palette {
   body: string;
@@ -112,6 +122,14 @@ function makeCanvas(w: number, h: number): HTMLCanvasElement {
 function face(ctx: Ctx, cx: number, cy: number, expr: Expression, stage: number, ink: string) {
   ctx.fillStyle = ink;
   // Ojos
+  if (expr === 'hurt') {
+    // X X, boca ondulada y lagrimón
+    for (const ox of [-5, 3]) { px(ctx, cx + ox, cy - 3); px(ctx, cx + ox + 2, cy - 3); px(ctx, cx + ox + 1, cy - 2); px(ctx, cx + ox, cy - 1); px(ctx, cx + ox + 2, cy - 1); }
+    px(ctx, cx - 3, cy + 4); px(ctx, cx - 2, cy + 3); px(ctx, cx - 1, cy + 4); px(ctx, cx, cy + 3); px(ctx, cx + 1, cy + 4); px(ctx, cx + 2, cy + 3);
+    ctx.fillStyle = '#6cf';
+    px(ctx, cx + 6, cy, 1, 2); px(ctx, cx + 6, cy + 2, 2, 1);
+    return;
+  }
   if (expr === 'happy') {
     // ^ ^
     px(ctx, cx - 5, cy - 1); px(ctx, cx - 4, cy - 2); px(ctx, cx - 3, cy - 1);
@@ -174,12 +192,60 @@ function chain(ctx: Ctx, cx: number, y: number) {
   px(ctx, cx - 1, y + 3, 3, 3);
 }
 
+/**
+ * Accesorios por mejoras. (cx, cy) = centro de la cara; `top` = parte superior de la cabeza;
+ * `w` = ancho del sprite.
+ */
+function accessories(ctx: Ctx, flags: number, cx: number, cy: number, top: number, bodyY: number) {
+  if (flags & LOOK.antenna) {
+    ctx.fillStyle = '#9aa3b5';
+    px(ctx, cx - 7, top - 6, 1, 6);
+    ctx.fillStyle = '#ff3d3d';
+    px(ctx, cx - 8, top - 8, 3, 2);
+  }
+  if (flags & LOOK.sweatband) {
+    ctx.fillStyle = '#e8303b';
+    px(ctx, cx - 8, cy - 7, 17, 2);
+    ctx.fillStyle = '#ffffff';
+    px(ctx, cx - 8, cy - 6, 17, 1);
+  }
+  if (flags & LOOK.heart) {
+    ctx.fillStyle = '#ff3d7f';
+    const hx = cx - 11;
+    const hy = bodyY;
+    px(ctx, hx, hy, 2, 1); px(ctx, hx + 3, hy, 2, 1); px(ctx, hx - 1, hy + 1, 7, 1); px(ctx, hx, hy + 2, 5, 1); px(ctx, hx + 1, hy + 3, 3, 1); px(ctx, hx + 2, hy + 4, 1, 1);
+  }
+}
+
+/** Globo-condón atado y matamoscas a los lados (fuera del cuerpo). */
+function sideProps(ctx: Ctx, flags: number, w: number, cy: number) {
+  if (flags & LOOK.balloon) {
+    const bx = w - 6;
+    const by = cy - 24;
+    ellipse(ctx, bx, by, 3, 5, '#ff9fd0');
+    ctx.fillStyle = '#ffd6ec';
+    px(ctx, bx - 1, by - 3, 1, 2);
+    ctx.fillStyle = '#ff9fd0';
+    px(ctx, bx, by - 7, 1, 2); // la puntita
+    ctx.fillStyle = '#cfc7dd';
+    for (let i = 0; i < 12; i++) px(ctx, bx - Math.floor(i / 4), by + 6 + i);
+  }
+  if (flags & LOOK.swatter) {
+    ctx.fillStyle = '#8a5a2b';
+    px(ctx, 5, cy - 4, 1, 14);
+    ctx.fillStyle = '#3fd0c9';
+    px(ctx, 2, cy - 12, 7, 8);
+    ctx.fillStyle = '#22908b';
+    for (let i = 0; i < 7; i += 2) { px(ctx, 2 + i, cy - 12, 1, 8); px(ctx, 2, cy - 12 + i, 7, 1); }
+  }
+}
+
 // ───────────── Mascota masculina: Cohete ─────────────
 
 const ROCKET_W = 56;
 const ROCKET_H = 76;
 
-function drawRocket(stage: number, expr: Expression): HTMLCanvasElement {
+function drawRocket(stage: number, expr: Expression, flags: number): HTMLCanvasElement {
   const c = makeCanvas(ROCKET_W, ROCKET_H);
   const ctx = c.getContext('2d')!;
   const p = paletteFor('male', stage);
@@ -191,7 +257,7 @@ function drawRocket(stage: number, expr: Expression): HTMLCanvasElement {
     px(ctx, cx - 14 - Math.floor(i / 2), cy + 8 + i, 4 + Math.floor(i / 2), 1);
     px(ctx, cx + 11, cy + 8 + i, 4 + Math.floor(i / 2), 1);
   }
-  ctx.fillStyle = p.accentShade;
+  ctx.fillStyle = flags & LOOK.goldTrim ? '#ffcf3f' : p.accentShade;
   px(ctx, cx - 20, cy + 19, 7, 2); px(ctx, cx + 14, cy + 19, 7, 2);
   // Cuerpo
   ellipse(ctx, cx, cy, 13, 26, p.body);
@@ -220,6 +286,8 @@ function drawRocket(stage: number, expr: Expression): HTMLCanvasElement {
   }
   if (stage >= 5) crown(ctx, cx, cy - 25);
   if (stage >= 7) halo(ctx, cx, cy - 27);
+  accessories(ctx, flags, cx, cy + 1, cy - 25, cy + 12);
+  sideProps(ctx, flags, ROCKET_W, cy);
   outline(c, p.outline);
   return c;
 }
@@ -250,7 +318,7 @@ function shell(ctx: Ctx, cx: number, cy: number, top: boolean, p: Palette) {
   for (let x = -rx + 1; x <= rx - 1; x++) px(ctx, cx + x, cy + (top ? 0 : 0));
 }
 
-function drawClamBottom(stage: number, expr: Expression): HTMLCanvasElement {
+function drawClamBottom(stage: number, expr: Expression, flags: number): HTMLCanvasElement {
   const c = makeCanvas(CLAM_W, CLAM_H);
   const ctx = c.getContext('2d')!;
   const p = paletteFor('female', stage);
@@ -272,6 +340,9 @@ function drawClamBottom(stage: number, expr: Expression): HTMLCanvasElement {
     px(ctx, cx + 6, cy - 20, 3, 3); px(ctx, cx + 10, cy - 20, 3, 3); px(ctx, cx + 9, cy - 19, 1, 1);
   }
   if (stage >= 5) crown(ctx, cx, cy - 19);
+  if (flags & LOOK.goldTrim) { ctx.fillStyle = '#ffcf3f'; px(ctx, cx - 25, cy, 51, 1); }
+  accessories(ctx, flags, cx, cy - 8, cy - 19, cy + 4);
+  sideProps(ctx, flags, CLAM_W, cy);
   outline(c, p.outline);
   return c;
 }
@@ -317,11 +388,11 @@ export function externalFrame(side: SideId): HTMLImageElement | undefined {
   return external[side];
 }
 
-export function mascotSprite(side: SideId, stage: number, expr: Expression): HTMLCanvasElement {
-  const key = `${side}:${stage}:${expr}`;
+export function mascotSprite(side: SideId, stage: number, expr: Expression, flags = 0): HTMLCanvasElement {
+  const key = `${side}:${stage}:${expr}:${flags}`;
   let c = cache.get(key);
   if (!c) {
-    c = side === 'male' ? drawRocket(stage, expr) : drawClamBottom(stage, expr);
+    c = side === 'male' ? drawRocket(stage, expr, flags) : drawClamBottom(stage, expr, flags);
     cache.set(key, c);
   }
   return c;

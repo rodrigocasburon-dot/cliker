@@ -10,6 +10,7 @@ import { createState, SIDES, type GameState, type SideId } from '../src/core/sta
 import { formatDuration, formatNumber } from '../src/core/format';
 import { BALANCE } from '../src/data/balance';
 import { UPGRADES } from '../src/data/upgrades';
+import { CONDOM_UPGRADES } from '../src/data/condoms';
 import { xpForLevel } from '../src/systems/levels';
 import { addProduction } from '../src/systems/economy';
 import { catchFly } from '../src/systems/events';
@@ -17,7 +18,7 @@ import { tick } from '../src/systems/game';
 import { computeRates } from '../src/systems/production';
 import { seeded, setRandom } from '../src/systems/random';
 import {
-  availablePurchases, bestPurchase, buy, evaluatePurchase, isUpgradeAvailable, purchaseCost, type Purchase,
+  availablePurchases, bestPurchase, buy, buyCondomUpgrade, condomCost, condomLevel, evaluatePurchase, isUpgradeAvailable, purchaseCost, type Purchase,
 } from '../src/systems/shop';
 
 // ───────────── CLI ─────────────
@@ -150,6 +151,16 @@ export function simulate(opts: SimOptions): SimResult {
       }
     }
 
+    // Condones: compra siempre la mejora más barata disponible
+    if (opts.strategy !== 'solo-gen') {
+      for (let guard = 0; guard < 20; guard++) {
+        const open = CONDOM_UPGRADES.filter((u) => condomLevel(state, u.id) < u.maxLevel);
+        if (!open.length) break;
+        const cheapest = open.reduce((a, b) => (condomCost(a, condomLevel(state, a.id)) <= condomCost(b, condomLevel(state, b.id)) ? a : b));
+        if (!buyCondomUpgrade(state, cheapest.id)) break;
+      }
+    }
+
     for (const id of SIDES) {
       const lt = levelTimes[id];
       while (lt.length <= state.sides[id].level) lt.push(state.time);
@@ -165,6 +176,7 @@ export function simulate(opts: SimOptions): SimResult {
   }
   for (const id of SIDES) {
     const r = computeRates(state, id);
+    if (id === 'male') log.push(`condones ganados ${state.stats.condomsEarned}, mejoras ${JSON.stringify(state.condomUpgrades)}`);
     log.push(`${id}: nivel ${state.sides[id].level}, ${formatNumber(r.idleIncome)}/s inactivo, clicks ${formatNumber(state.sides[id].clicks)}`);
     if (args.detail) {
       log.push(`  autoIncome ${formatNumber(r.autoIncome)} clickPps% ${r.mods.clickPpsPct} manual ${formatNumber(r.clickValue.mul(humanCpsAt(state.time, opts.cps) / 2))}`);

@@ -24,6 +24,12 @@ export interface SideState {
   clickRecent?: number;
   /** Tiempo de juego hasta el que dura el efecto de la mosca. */
   flyBoostUntil: number;
+  /** Calor por sobreuso (0–100). */
+  heat: number;
+  /** Tiempo de juego hasta el que dura el problema (testicular / la regla). */
+  problemUntil: number;
+  /** Último nivel por el que ya se dieron condones. */
+  condomLevel: number;
 }
 
 export interface Fly {
@@ -51,6 +57,10 @@ export interface GameState {
   nextFlyAt: number;
   achievements: Record<string, true>;
   prestigePoints: number;
+  /** Condones 🎈: moneda compartida entre ambos lados. */
+  condoms: number;
+  /** Mejoras compradas con condones (afectan a ambos lados y sobreviven al prestigio). */
+  condomUpgrades: Record<string, number>;
   stats: {
     flies: number;
     goldenFlies: number;
@@ -58,6 +68,8 @@ export interface GameState {
     /** Total producido de todas las partidas. */
     lifetimeProduced: Decimal;
     playSeconds: number;
+    condomsEarned: number;
+    problems: number;
   };
   settings: Settings;
   ageConfirmed: boolean;
@@ -81,6 +93,9 @@ export function createSide(): SideState {
     lastClickTime: -1e9,
     clickRate: 0,
     flyBoostUntil: -1,
+    heat: 0,
+    problemUntil: -1,
+    condomLevel: 1,
   };
 }
 
@@ -105,7 +120,9 @@ export function createState(now = Date.now()): GameState {
     nextFlyAt: BALANCE.fly.minDelaySeconds,
     achievements: {},
     prestigePoints: 0,
-    stats: { flies: 0, goldenFlies: 0, prestiges: 0, lifetimeProduced: D(0), playSeconds: 0 },
+    condoms: 0,
+    condomUpgrades: {},
+    stats: { flies: 0, goldenFlies: 0, prestiges: 0, lifetimeProduced: D(0), playSeconds: 0, condomsEarned: 0, problems: 0 },
     settings: defaultSettings(),
     ageConfirmed: false,
     tutorialDone: false,

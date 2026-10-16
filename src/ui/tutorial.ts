@@ -59,6 +59,7 @@ export class Tutorial {
       state.sides.male.level >= 3 || state.sides.female.level >= 3 || this.stepTime > 12,
       this.stepTime > 10,
       this.stepTime > 10 || state.stats.flies > 0,
+      this.stepTime > 10,
     ][this.step];
     if (done) this.advance();
   }

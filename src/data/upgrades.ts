@@ -21,7 +21,11 @@ export type Effect =
   | { type: 'flyBoostDurationMult'; value: number }
   | { type: 'flyDelayMult'; value: number }
   | { type: 'genPerOwned'; value: number }
-  | { type: 'buyBest' };
+  | { type: 'buyBest' }
+  | { type: 'flyPower'; value: number }
+  | { type: 'goldenChance'; value: number }
+  | { type: 'heatDecayMult'; value: number }
+  | { type: 'problemDurationMult'; value: number };
 
 export interface UpgradeDef {
   id: string;
@@ -45,15 +49,15 @@ export interface UpgradeDef {
 const at = (level: number, levels: number) => refCost(level, levels);
 
 const CLICK: UpgradeDef[] = [
-  { id: 'c_add', family: 'click', kind: 'repeatable', unlockLevel: 1, cost: 15, costGrowth: 1.6, maxLevel: 10,
-    effects: [{ type: 'clickAdd', value: 1 }] },
-  { id: 'c_mult', family: 'click', kind: 'repeatable', unlockLevel: 8, cost: at(8, 1), costGrowth: 30, maxLevel: 60,
-    effects: [{ type: 'clickMult', value: 1.5 }] },
-  { id: 'c_pps1', family: 'click', kind: 'oneoff', unlockLevel: 8, cost: at(8, 0.8), effects: [{ type: 'clickPpsPct', value: 0.005 }] },
-  { id: 'c_pps2', family: 'click', kind: 'oneoff', unlockLevel: 30, cost: at(30, 1), effects: [{ type: 'clickPpsPct', value: 0.005 }] },
-  { id: 'c_pps3', family: 'click', kind: 'oneoff', unlockLevel: 70, cost: at(70, 1), effects: [{ type: 'clickPpsPct', value: 0.01 }] },
-  { id: 'c_pps4', family: 'click', kind: 'oneoff', unlockLevel: 120, cost: at(120, 1), effects: [{ type: 'clickPpsPct', value: 0.01 }] },
-  { id: 'c_pps5', family: 'click', kind: 'oneoff', unlockLevel: 170, cost: at(170, 1), effects: [{ type: 'clickPpsPct', value: 0.01 }] },
+  { id: 'c_add', family: 'click', kind: 'repeatable', unlockLevel: 1, cost: 15, costGrowth: 1.5, maxLevel: 20,
+    effects: [{ type: 'clickAdd', value: 2 }] },
+  { id: 'c_mult', family: 'click', kind: 'repeatable', unlockLevel: 8, cost: at(8, 1), costGrowth: 40, maxLevel: 60,
+    effects: [{ type: 'clickMult', value: 2 }] },
+  { id: 'c_pps1', family: 'click', kind: 'oneoff', unlockLevel: 8, cost: at(8, 0.8), effects: [{ type: 'clickPpsPct', value: 0.01 }] },
+  { id: 'c_pps2', family: 'click', kind: 'oneoff', unlockLevel: 30, cost: at(30, 1), effects: [{ type: 'clickPpsPct', value: 0.015 }] },
+  { id: 'c_pps3', family: 'click', kind: 'oneoff', unlockLevel: 70, cost: at(70, 1), effects: [{ type: 'clickPpsPct', value: 0.02 }] },
+  { id: 'c_pps4', family: 'click', kind: 'oneoff', unlockLevel: 120, cost: at(120, 1), effects: [{ type: 'clickPpsPct', value: 0.025 }] },
+  { id: 'c_pps5', family: 'click', kind: 'oneoff', unlockLevel: 170, cost: at(170, 1), effects: [{ type: 'clickPpsPct', value: 0.03 }] },
   { id: 'combo1', family: 'click', kind: 'oneoff', unlockLevel: 20, cost: at(20, 0.6), effects: [{ type: 'comboMax', value: 25 }] },
   { id: 'combo2', family: 'click', kind: 'oneoff', unlockLevel: 60, cost: at(60, 0.6), effects: [{ type: 'comboMax', value: 50 }] },
   { id: 'auto', family: 'click', kind: 'oneoff', unlockLevel: 10, cost: at(10, 0.5), effects: [{ type: 'automation' }] },

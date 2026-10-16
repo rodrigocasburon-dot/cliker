@@ -5,7 +5,8 @@ import { BALANCE } from '../data/balance';
 import { ES, t } from '../i18n/es';
 import { stageOf, xpForLevel, xpProgress } from '../systems/levels';
 import type { Rates } from '../systems/production';
-import { clamTopSprite, externalFrame, mascotSprite, paletteFor, MASCOT_SIZE, type Expression } from './sprites';
+import { clamTopSprite, externalFrame, mascotSprite, paletteFor, MASCOT_SIZE, LOOK, type Expression } from './sprites';
+import { CONDOM_UPGRADES } from '../data/condoms';
 import { el, setText } from './dom';
 
 /** Resolución interna del canvas (se escala con píxeles nítidos). */
@@ -39,7 +40,10 @@ export class SideView {
   private autoAcc = 0;
   private floatCount = 0;
   private lastStage = -1;
+  private level = 1;
   private time = 0;
+  private elHeatFill: HTMLElement;
+  private elHeat: HTMLElement;
 
   constructor(readonly side: SideId, private onClick: (side: SideId, x: number, y: number) => void) {
     const s = ES.sides[side];
@@ -56,6 +60,8 @@ export class SideView {
     this.elXpFill = el('div', { class: 'xp-fill' });
     this.elXpText = el('div', { class: 'xp-text' });
     this.elChips = el('div', { class: 'chips' });
+    this.elHeatFill = el('div', { class: 'heat-fill' });
+    this.elHeat = el('div', { class: 'heat-bar', title: ES.ui.heat, 'aria-label': ES.ui.heat }, [el('span', { class: 'heat-icon' }, '🌡️'), el('div', { class: 'heat-track' }, this.elHeatFill)]);
 
     this.root = el('section', { class: `side side-${side}`, 'aria-label': s.name }, [
       el('header', { class: 'side-head' }, [
@@ -69,6 +75,7 @@ export class SideView {
       ]),
       el('div', { class: 'xp-bar', role: 'progressbar', 'aria-label': 'XP' }, [this.elXpFill, this.elXpText]),
       this.stage,
+      this.elHeat,
       this.elClick,
       this.elChips,
     ]);
@@ -95,7 +102,8 @@ export class SideView {
   }
 
   private groundY() { return H - 14; }
-  private mascotScale() { return 1 + Math.min(8, this.lastStage < 0 ? 0 : this.lastStage) * 0.03; }
+  /** La mascota crece poco a poco con cada nivel (hasta +30 % en el 200). */
+  private mascotScale() { return 1 + Math.min(200, this.level) * 0.0015; }
 
   /** Feedback de un click (manual o automático). */
   burst(manual: boolean, amount: Decimal, notation: Parameters<typeof formatNumber>[1], clickX = 0.5, clickY = 0.4, shake = true): void {
@@ -140,6 +148,11 @@ export class SideView {
     span.addEventListener('animationend', () => { span.remove(); this.floatCount--; }, { once: true });
   }
 
+  /** Texto flotante pequeño (condones…). */
+  announceSmall(text: string): void {
+    this.floating(text, 0.75, 0.25, 'float-num');
+  }
+
   /** Texto flotante grande (subida de nivel, mosca…). */
   announce(text: string): void {
     this.floating(text, 0.5, 0.35, 'announce');
@@ -162,9 +175,15 @@ export class SideView {
       : `${formatNumber(side.xp, nt)} / ${formatNumber(xpForLevel(side.level), nt)} ${ES.ui.xp}`);
     const chips: string[] = [];
     if (r.autoCps > 0) chips.push(t(ES.ui.autoOn, { v: r.autoCps.toFixed(1) }));
-    if (r.flyBoostActive) chips.push(t(ES.ui.flyBoost, { t: `${Math.ceil(side.flyBoostUntil - state.time)} s` }));
+    if (r.flyBoostActive) chips.push(t(ES.ui.flyBoost, { m: r.flyMultiplier.toFixed(1), t: `${Math.ceil(side.flyBoostUntil - state.time)} s` }));
+    if (r.problemActive) chips.unshift(t(ES.sides[this.side].problemChip, { t: `${Math.ceil(side.problemUntil - state.time)} s` }));
     setText(this.elChips, chips.join('  '));
     this.root.classList.toggle('boosted', r.flyBoostActive);
+    this.root.classList.toggle('sick', r.problemActive);
+    // Termómetro de sobreuso
+    const heat = Math.min(1, side.heat / BALANCE.overuse.threshold);
+    this.elHeatFill.style.transform = `scaleX(${r.problemActive ? 1 : heat})`;
+    this.elHeat.classList.toggle('hot', r.problemActive || side.heat >= BALANCE.overuse.warnAt);
   }
 
   /** Dibuja un fotograma. `dt` en segundos reales. */
@@ -173,6 +192,10 @@ export class SideView {
     const side = state.sides[this.side];
     const stage = Math.min(8, stageOf(side.level));
     this.lastStage = stage;
+    this.level = side.level;
+    const sick = r.problemActive;
+    const hot = !sick && side.heat >= BALANCE.overuse.warnAt;
+    const flags = this.lookFlags(state, r);
     const pal = paletteFor(this.side, stage);
     const ctx = this.ctx;
 
@@ -228,7 +251,7 @@ export class SideView {
     // Mascota con squash & stretch
     this.pulse = Math.max(0, this.pulse - dt * 5);
     if (this.time > this.blinkAt + 0.12) this.blinkAt = this.time + 2 + Math.random() * 3;
-    const expr: Expression = this.time < this.happyUntil ? 'happy' : this.time > this.blinkAt ? 'blink' : 'idle';
+    const expr: Expression = sick ? 'hurt' : this.time < this.happyUntil ? 'happy' : this.time > this.blinkAt ? 'blink' : 'idle';
     const scale = this.mascotScale();
     const squash = 1 - this.pulse * 0.14;
     const stretch = 1 + this.pulse * 0.1;
@@ -240,7 +263,7 @@ export class SideView {
       const sh = 64 * scale * squash;
       ctx.drawImage(ext, stage * fw, 0, fw, fw, Math.round(W / 2 - sw / 2), Math.round(gy - sh + bob), Math.round(sw), Math.round(sh));
     } else if (this.side === 'male') {
-      const spr = mascotSprite('male', stage, expr);
+      const spr = mascotSprite('male', stage, expr, flags);
       const sw = spr.width * scale * stretch;
       const sh = spr.height * scale * squash;
       // Llama de la tobera cuando trabaja
@@ -251,7 +274,7 @@ export class SideView {
       }
       ctx.drawImage(spr, Math.round(W / 2 - sw / 2), Math.round(gy - sh + bob), Math.round(sw), Math.round(sh));
     } else {
-      const bottom = mascotSprite('female', stage, expr);
+      const bottom = mascotSprite('female', stage, expr, flags);
       const top = clamTopSprite(stage);
       const sw = bottom.width * scale * stretch;
       const sh = bottom.height * scale * squash;
@@ -259,8 +282,10 @@ export class SideView {
       const y = Math.round(gy - sh + 10 * scale + bob);
       const open = Math.round((15 + this.pulse * 9 + Math.sin(this.time * 1.5) * 1.5) * scale);
       ctx.drawImage(bottom, x, y, Math.round(sw), Math.round(sh));
-      ctx.drawImage(top, x, y - open, Math.round(sw), Math.round(sh));
+      ctx.drawImage(top, x, y - (sick ? Math.round(4 * scale) : open), Math.round(sw), Math.round(sh));
     }
+    if (sick) this.drawProblem(gy);
+    if (hot) this.drawSteam(gy, scale);
 
     // Partículas (gotas con gravedad y salpicadura en el suelo)
     const g = 140;
@@ -285,6 +310,54 @@ export class SideView {
     }
     ctx.globalAlpha = 1;
     this.particles = alive;
+  }
+
+  /** Accesorios de la mascota según lo que se ha comprado. */
+  private lookFlags(state: GameState, r: Rates): number {
+    const side = state.sides[this.side];
+    const up = side.upgrades;
+    const k = state.condomUpgrades;
+    let f = 0;
+    if (r.mods.automation) f |= LOOK.antenna;
+    if ((up.c_add ?? 0) >= 4 || (up.c_mult ?? 0) >= 1) f |= LOOK.sweatband;
+    if (CONDOM_UPGRADES.reduce((t, u) => t + (k[u.id] ?? 0), 0) >= 3) f |= LOOK.balloon;
+    if ((k.k_flyPower ?? 0) + (k.k_flyTime ?? 0) + (k.k_flyFreq ?? 0) + (k.k_flyGold ?? 0) >= 2) f |= LOOK.swatter;
+    if ((up.synergy ?? 0) >= 1) f |= LOOK.heart;
+    if ((up.c_mult ?? 0) >= 4) f |= LOOK.goldTrim;
+    return f;
+  }
+
+  /** Bolsa de hielo (él) o bolsa de agua caliente (ella), y gotas de sudor. */
+  private drawProblem(gy: number) {
+    const ctx = this.ctx;
+    const x = W / 2 + (this.side === 'male' ? -8 : 14);
+    const y = gy - (this.side === 'male' ? 10 : 18);
+    ctx.fillStyle = '#0e0820';
+    ctx.fillRect(x - 1, y - 1, 18, 10);
+    ctx.fillStyle = this.side === 'male' ? '#8fe6ff' : '#e8303b';
+    ctx.fillRect(x, y, 16, 8);
+    ctx.fillStyle = this.side === 'male' ? '#e8fbff' : '#ff8a8a';
+    ctx.fillRect(x + 2, y + 1, 5, 2);
+    if (this.side === 'female') { ctx.fillStyle = '#b11d28'; ctx.fillRect(x + 14, y - 3, 3, 3); }
+    // Sudor
+    ctx.fillStyle = '#9fe8ff';
+    const t = (this.time * 1.5) % 1;
+    ctx.fillRect(Math.round(W / 2 - 18), Math.round(gy - 60 + t * 20), 1, 2);
+    ctx.fillRect(Math.round(W / 2 + 18), Math.round(gy - 55 + ((t + 0.5) % 1) * 20), 1, 2);
+  }
+
+  /** Vapor cuando el lado se está recalentando. */
+  private drawSteam(gy: number, scale: number) {
+    const ctx = this.ctx;
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let i = 0; i < 4; i++) {
+      const t = (this.time * 0.8 + i * 0.25) % 1;
+      const x = W / 2 + (i - 1.5) * 9 + Math.sin(this.time * 3 + i) * 2;
+      const y = gy - 70 * scale - t * 18;
+      ctx.globalAlpha = 1 - t;
+      ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
+    }
+    ctx.globalAlpha = 1;
   }
 
   private drawDeco(d: Deco, color: string) {
