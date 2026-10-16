@@ -16,6 +16,7 @@ import {
   isMaxed, isUpgradeAvailable, isUpgradeUnlocked, maxAffordable, upgradeCost, upgradeLevel, type Purchase, type PurchaseEval,
 } from '../systems/shop';
 import { el, setText, toggleClass } from './dom';
+import { BUILD_ID } from './updates';
 
 export type TabId = 'click' | 'gen' | 'mult' | 'condoms' | 'ach' | 'stats' | 'settings';
 export type BuyAmount = 1 | 10 | 'max';
@@ -555,6 +556,7 @@ export class ShopView {
       return b;
     };
     this.body.replaceChildren(
+      this.cheatField(st),
       range(S.sound, set.sfxVolume, (v) => { set.sfxVolume = v; }),
       range(S.music, set.musicVolume, (v) => { set.musicVolume = v; }),
       check(S.mute, set.muted, (v) => { set.muted = v; }),
@@ -562,13 +564,13 @@ export class ShopView {
       check(S.bigHit, set.bigHitArea, (v) => { set.bigHitArea = v; }),
       check(S.shake, set.screenShake, (v) => { set.screenShake = v; }),
       el('label', { class: 'setting' }, [el('span', {}, S.notation), notation]),
-      this.cheatField(st),
       el('div', { class: 'setting-buttons' }, [
         btn(S.export, () => this.actions.exportSave()),
         btn(S.import, () => this.actions.importSave()),
         btn(S.tutorial, () => this.actions.replayTutorial()),
         btn(S.reset, () => this.actions.reset(), 'danger'),
       ]),
+      el('p', { class: 'muted version' }, t(S.version, { v: BUILD_ID })),
     );
   }
 

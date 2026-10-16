@@ -12,6 +12,7 @@ import { stageOf } from '../systems/levels';
 import { applyOffline, type OfflineReport } from '../systems/offline';
 import { canFinale, completeFinale } from '../systems/finale';
 import { applyCheat } from '../systems/cheat';
+import { watchForUpdates } from './updates';
 import { FinaleScene } from './finale';
 import { canPrestige, doPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
@@ -78,9 +79,9 @@ export class App {
     this.finaleBtn = el('button', { type: 'button', class: 'head-btn finale-head', hidden: true, title: ES.finale.title }, ES.finale.button);
     this.finaleBtn.addEventListener('click', () => this.openFinale());
     this.condomEl = el('button', { type: 'button', class: 'head-btn condom-counter', title: ES.ui.condomsHelp }, '🎈 0');
-    this.condomEl.addEventListener('click', () => this.shop.setTab('condoms'));
+    this.condomEl.addEventListener('click', () => this.openTab('condoms'));
     const settingsBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.tabs.settings }, '⚙️');
-    settingsBtn.addEventListener('click', () => this.shop.setTab('settings'));
+    settingsBtn.addEventListener('click', () => this.openTab('settings'));
 
     this.rates = { male: computeRates(state, 'male'), female: computeRates(state, 'female') };
     const header = el('header', { class: 'top' }, [
@@ -114,6 +115,12 @@ export class App {
   }
 
   start(offline?: OfflineReport): void {
+    watchForUpdates((reload) => {
+      openModal(ES.ui.update.title, [ES.ui.update.body], [
+        { label: ES.ui.update.later },
+        { label: ES.ui.update.now, primary: true, onClick: () => { saveToStorage(this.state); reload(); } },
+      ]);
+    });
     this.prestigeWasAvailable = canPrestige(this.state);
     this.finaleWasAvailable = canFinale(this.state) && this.state.finales > 0;
     if (offline && offline.elapsed >= BALANCE.offline.minSecondsToNotify) this.showOffline(offline);
@@ -302,6 +309,12 @@ export class App {
         this.shop.refresh(true);
       } },
     ]);
+  }
+
+  /** Cambia de pestaña y lleva la tienda a la vista (en el móvil está debajo de las mascotas). */
+  private openTab(tab: 'condoms' | 'settings') {
+    this.shop.setTab(tab);
+    this.shop.root.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   private onCheat(code: string) {

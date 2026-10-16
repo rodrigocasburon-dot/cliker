@@ -607,3 +607,5 @@ button:disabled { cursor: not-allowed; }
 .setting.cheat { flex-direction: column; align-items: stretch; }
 .cheat-row { display: flex; gap: 6px; }
 .cheat-input { flex: 1; min-width: 0; background: var(--bg-2); color: var(--text); border: 2px solid var(--line); border-radius: 6px; padding: 6px; font-family: var(--mono); text-transform: uppercase; }
+
+.version { font-size: 11px; text-align: right; margin: 8px 0 0; }
