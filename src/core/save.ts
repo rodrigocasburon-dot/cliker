@@ -31,6 +31,7 @@ export function deserialize(json: string): GameState {
     achievements: { ...(raw.achievements ?? {}) },
     condoms: Number(raw.condoms ?? 0),
     condomUpgrades: { ...(raw.condomUpgrades ?? {}) },
+    finales: Number(raw.finales ?? 0),
   };
 }
 

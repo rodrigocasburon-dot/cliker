@@ -114,6 +114,13 @@ En la partida simulada (con muchas moscas atrapadas) se ganan ~8 000 condones ha
 - **Reempezar con multiplicador** (prestigio): disponible con un lado al nivel 40. Puntos = Σ floor((nivel / 20)^1.4) por lado; cada punto +25 % a toda la producción para siempre. Ejemplos: ambos lados al 40 → 4 puntos (×2); al 60 → 8 (×3); al 100 → 18 (×5.5); al 200 → 50 (×13.5). Al ser más que lineal, aguantar más antes de reempezar compensa, y reempezar pronto sirve para salir de un tramo lento. Se conservan condones y sus mejoras, logros, estadísticas y ajustes.
 - 36 logros (clicks, producción total, niveles, ambos lados, moscas, moscas doradas, generadores, elecciones, prestigios): +2 % de producción cada uno y XP extra.
 
+### 4.9 Paso final: «La gran noche» (💞 Sexo)
+- Se desbloquea tras reempezar 3 veces (`BALANCE.finale.requiredRestarts`). Aparece el botón «💞 Sexo» en la cabecera y un aviso; el progreso se ve en Estadísticas.
+- Minijuego de ritmo: tocar alternando Cohete / Almeja (botones, mitades de la escena o ← →). Cada toque alterno +4 de pasión (+2 extra si llega en menos de 0.5 s); repetir lado −3; la pasión baja 5/s. Con buen ritmo se llena en unos 15–20 s.
+- Escena: se acercan en la cama → a partir del 55 % bajo las sábanas (bulto que se mueve cada vez más rápido, ropa saliendo volando, cama que tiembla y cruje, corazones) → desde el 72 % barra «CENSURADO» → clímax: fogonazo, doble géiser, fuegos artificiales y «¡¡CLÍMAX FINAL!!».
+- Pantalla de final del juego con estadísticas. Recompensa permanente (sobrevive a reempezar): producción ×(1 + finales) y +100 condones. Repetible.
+- Logros «Por fin» (1) e «Insaciables» (3).
+
 ## 5. Los cuatro pilares (implementación)
 1. **Ritmo de recompensas**: primera compra a los 8 s, nueva mejora o generador cada pocos segundos durante los primeros minutos, automatización antes de 2 min. Después las compras son más caras y espaciadas (tabla §3) y los objetivos piden planificar: ahorrar para el siguiente generador, elegir A/B, equilibrar lados.
 2. **Decisiones significativas**: elecciones excluyentes con trade-offs activo/pasivo, sinergia que premia equilibrar ambos lados, generadores viejos que pierden rentabilidad frente a los nuevos (mismo coste ×1.15 pero menos multiplicador relativo) y mejoras baratas de poco impacto frente a caras de mucho. Ver análisis §6.

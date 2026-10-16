@@ -61,6 +61,8 @@ export interface GameState {
   condoms: number;
   /** Mejoras compradas con condones (afectan a ambos lados y sobreviven al prestigio). */
   condomUpgrades: Record<string, number>;
+  /** Veces que se ha completado el paso final («La gran noche»). */
+  finales: number;
   stats: {
     flies: number;
     goldenFlies: number;
@@ -122,6 +124,7 @@ export function createState(now = Date.now()): GameState {
     prestigePoints: 0,
     condoms: 0,
     condomUpgrades: {},
+    finales: 0,
     stats: { flies: 0, goldenFlies: 0, prestiges: 0, lifetimeProduced: D(0), playSeconds: 0, condomsEarned: 0, problems: 0 },
     settings: defaultSettings(),
     ageConfirmed: false,

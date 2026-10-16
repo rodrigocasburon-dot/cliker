@@ -8,6 +8,7 @@ import { UPGRADES, type Effect, type UpgradeDef } from '../data/upgrades';
 import { CONDOM_UPGRADES } from '../data/condoms';
 import { ES, t } from '../i18n/es';
 import { achievementProgress } from '../systems/achievements';
+import { canFinale, finaleMultiplier } from '../systems/finale';
 import { canPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
 import {
@@ -494,6 +495,7 @@ export class ShopView {
       [s.achievements, `${Object.keys(st.achievements).length} / ${ACHIEVEMENTS.length}`],
       [s.condoms, String(st.stats.condomsEarned)],
       [s.problems, String(st.stats.problems)],
+      [s.finales, String(st.finales)],
     ];
     const table = (list: [string, string][]) => el('dl', { class: 'kv' }, list.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
     const can = canPrestige(st);
@@ -516,6 +518,9 @@ export class ShopView {
         : t(ES.ui.prestigeLocked, { n: BALANCE.prestige.requiredLevel })),
       ...(can ? [el('p', { class: 'muted' }, ES.ui.prestigeKeep), el('p', { class: 'muted' }, t(ES.ui.prestigeMore, { n: nextPointLevel(st) }))] : []),
       pbtn,
+      el('p', { class: 'muted' }, canFinale(st)
+        ? (st.finales > 0 ? `💞 ${ES.finale.title}: ×${finaleMultiplier(st)} permanente.` : ES.finale.unlocked)
+        : t(ES.finale.locked, { n: BALANCE.finale.requiredRestarts, have: st.stats.prestiges })),
       el('h3', {}, 'Partida'), table(stats),
     );
   }

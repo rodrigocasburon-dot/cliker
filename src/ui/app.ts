@@ -10,6 +10,8 @@ import { catchFly } from '../systems/events';
 import { click, tick, type GameEvent } from '../systems/game';
 import { stageOf } from '../systems/levels';
 import { applyOffline, type OfflineReport } from '../systems/offline';
+import { canFinale, completeFinale } from '../systems/finale';
+import { FinaleScene } from './finale';
 import { canPrestige, doPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
 import { bestPurchase, buy, buyCondomUpgrade, buyGenerator, type Purchase } from '../systems/shop';
@@ -32,6 +34,9 @@ export class App {
   private goalText: HTMLElement;
   private prestigeBtn: HTMLButtonElement;
   private prestigeWasAvailable = false;
+  private finaleBtn: HTMLButtonElement;
+  private finaleWasAvailable = false;
+  private finaleOpen = false;
   private muteBtn: HTMLButtonElement;
   private condomEl: HTMLButtonElement;
   private rates: Record<SideId, Rates>;
@@ -68,6 +73,8 @@ export class App {
     this.prestigeBtn.addEventListener('click', () => this.onPrestige());
     this.muteBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.settings.mute }, '🔊');
     this.muteBtn.addEventListener('click', () => { this.state.settings.muted = !this.state.settings.muted; this.applySettings(); });
+    this.finaleBtn = el('button', { type: 'button', class: 'head-btn finale-head', hidden: true, title: ES.finale.title }, ES.finale.button);
+    this.finaleBtn.addEventListener('click', () => this.openFinale());
     this.condomEl = el('button', { type: 'button', class: 'head-btn condom-counter', title: ES.ui.condomsHelp }, '🎈 0');
     this.condomEl.addEventListener('click', () => this.shop.setTab('condoms'));
     const settingsBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.tabs.settings }, '⚙️');
@@ -76,7 +83,7 @@ export class App {
     this.rates = { male: computeRates(state, 'male'), female: computeRates(state, 'female') };
     const header = el('header', { class: 'top' }, [
       el('h1', { class: 'logo' }, [el('span', {}, '💦 '), ES.title]),
-      el('div', { class: 'head-btns' }, [this.condomEl, this.prestigeBtn, this.muteBtn, settingsBtn]),
+      el('div', { class: 'head-btns' }, [this.finaleBtn, this.condomEl, this.prestigeBtn, this.muteBtn, settingsBtn]),
     ]);
     const goal = el('div', { class: 'goal', 'aria-live': 'polite' }, [el('strong', {}, `🎯 ${ES.ui.nextGoal}: `), this.goalText]);
     mount.replaceChildren(
@@ -106,6 +113,7 @@ export class App {
 
   start(offline?: OfflineReport): void {
     this.prestigeWasAvailable = canPrestige(this.state);
+    this.finaleWasAvailable = canFinale(this.state) && this.state.finales > 0;
     if (offline && offline.elapsed >= BALANCE.offline.minSecondsToNotify) this.showOffline(offline);
     if (!this.state.tutorialDone) this.tutorial.start();
     if (this.state.fly) this.fly.show(this.state.fly.golden, this.state.settings.bigHitArea);
@@ -135,6 +143,12 @@ export class App {
     if (this.uiAcc >= 0.1) {
       this.uiAcc = 0;
       for (const id of SIDES) this.sides[id].updateStats(this.state, this.rates[id]);
+      const fin = canFinale(this.state);
+      this.finaleBtn.hidden = !fin;
+      if (fin && !this.finaleWasAvailable) {
+        this.finaleWasAvailable = true;
+        this.toasts.show(ES.finale.unlocked, 'big', 7000);
+      }
       const can = canPrestige(this.state);
       this.prestigeBtn.hidden = !can;
       if (can) {
@@ -286,6 +300,39 @@ export class App {
         this.shop.refresh(true);
       } },
     ]);
+  }
+
+  /** Abre «La gran noche» (el paso final). */
+  private openFinale() {
+    if (!canFinale(this.state) || this.finaleOpen) return;
+    this.finaleOpen = true;
+    let reward: { condoms: number; mult: number } | null = null;
+    new FinaleScene(this.state, () => {
+      reward = completeFinale(this.state);
+      this.events.length = 0;
+      saveToStorage(this.state);
+    }, () => {
+      this.finaleOpen = false;
+      if (reward) this.showEnding(reward);
+    });
+  }
+
+  private showEnding(reward: { condoms: number; mult: number }) {
+    const st = this.state;
+    const nt = st.settings.notation;
+    openModal(ES.finale.endTitle, [
+      t(ES.finale.endBody, { r: st.stats.prestiges }),
+      t(ES.finale.endReward, { m: reward.mult, c: reward.condoms }),
+      t(ES.finale.endStats, {
+        time: formatDuration(st.stats.playSeconds),
+        clicks: formatNumber(Math.floor(st.sides.male.clicks + st.sides.female.clicks), nt),
+        flies: st.stats.flies,
+        prod: formatNumber(st.stats.lifetimeProduced, nt),
+      }),
+      ES.finale.endAgain,
+    ], [{ label: ES.finale.endOk, primary: true }]);
+    audio.play('achievement');
+    this.shop.refresh(true);
   }
 
   private applySettings() {

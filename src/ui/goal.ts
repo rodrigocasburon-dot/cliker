@@ -3,6 +3,7 @@ import type { GameState, SideId } from '../core/state';
 import { BALANCE } from '../data/balance';
 import { ES, t } from '../i18n/es';
 import { canPrestige } from '../systems/prestige';
+import { canFinale } from '../systems/finale';
 import { bestPurchase, estimatedIncome } from '../systems/shop';
 import { genName, upgradeTitle } from './shop';
 import { UPGRADE_BY_ID } from '../data/upgrades';
@@ -15,6 +16,7 @@ function purchaseName(side: SideId, p: Purchase): string {
 /** Texto del «siguiente objetivo» para un lado: qué persigo y por qué. */
 export function nextGoal(state: GameState, id: SideId): string {
   const side = state.sides[id];
+  if (canFinale(state) && state.finales === 0) return ES.finale.unlocked;
   if (canPrestige(state) && Math.max(state.sides.male.level, state.sides.female.level) >= BALANCE.maxLevel) {
     const both = state.sides.male.level >= BALANCE.maxLevel && state.sides.female.level >= BALANCE.maxLevel;
     return both ? ES.ui.goalDone : ES.ui.goalPrestige;

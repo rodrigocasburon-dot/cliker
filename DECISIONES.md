@@ -39,3 +39,7 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 
 ## Tercera versión (estética más picante)
 - Se sube el tono con doble sentido, ropa atrevida, censura de broma, salpicones y ambiente de motel, pero sin dibujar genitales ni actos sexuales explícitos: el juego está publicado en abierto y el humor funciona mejor sugiriendo.
+
+## Paso final («Sexo»)
+- Se implementa como un minijuego de ritmo que cierra el juego («La gran noche»), desbloqueado tras 3 reinicios. Mismo criterio visual que el resto: todo bajo las sábanas, con censura de broma y sin dibujar actos sexuales explícitos.
+- Es repetible y su recompensa es multiplicativa con la de reempezar, para que siga teniendo sentido tras el primer final.

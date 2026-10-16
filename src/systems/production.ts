@@ -3,6 +3,7 @@ import { otherSide, type GameState, type SideId, type SideState } from '../core/
 import { BALANCE } from '../data/balance';
 import { GENERATORS } from '../data/generators';
 import { levelMultiplier } from '../data/curve';
+import { finaleMultiplier } from './finale';
 import { computeModifiers, type Modifiers } from './modifiers';
 
 export interface Rates {
@@ -36,7 +37,11 @@ export { levelMultiplier };
 export const achievementMultiplier = (state: GameState): number =>
   1 + Object.keys(state.achievements).length * BALANCE.achievements.bonusEach;
 
+/** Prestigio (reempezar) × finales completados. */
 export const prestigeMultiplier = (state: GameState): number =>
+  finaleMultiplier(state) * prestigeOnly(state);
+
+const prestigeOnly = (state: GameState): number =>
   1 + state.prestigePoints * BALANCE.prestige.bonusPerPoint;
 
 export function synergyMultiplier(mods: Modifiers, otherLevel: number): number {

@@ -143,6 +143,7 @@ export const ES = {
     gen: ['Pequeña empresa', 'Polígono industrial', 'Multinacional', 'Monopolio'],
     cho: ['Decidido', 'Sin arrepentimientos'],
     pre: ['Renacer', 'Reencarnación en serie'],
+    fin: ['Por fin', 'Insaciables'],
   } as Record<string, string[]>,
 
   achievementDesc: {
@@ -155,7 +156,28 @@ export const ES = {
     generators: 'Tener {v} generadores',
     choices: 'Elegir {v} mejoras excluyentes',
     prestiges: 'Reempezar {v} veces',
+    finales: 'Completar «La gran noche» {v} veces',
   } as Record<string, string>,
+
+  finale: {
+    title: 'La gran noche',
+    button: '💞 Sexo',
+    locked: '💞 Paso final: reempieza {n} veces para desbloquearlo ({have}/{n}).',
+    unlocked: '💞 ¡Paso final desbloqueado! El Cohete y la Almeja por fin se van a conocer. Pulsa «💞 Sexo» arriba.',
+    hint: 'Toca al Cohete y a la Almeja alternando, a ritmo, para llenar la pasión ❤️',
+    alternate: '¡Alterna! Uno y otro, que si no se enfría la cosa…',
+    underSheets: '¡Bajo las sábanas! No pares, que ya casi…',
+    passion: 'Pasión',
+    exit: 'Dejarlo para otro día',
+    words: ['¡ÑIC ÑIC!', '¡ÑAC!', '¡OH SÍ!', '¡AHÍ!', '¡MÁS!', '¡CRUJE!', '¡UY UY UY!', '¡QUÉ NOCHE!', '¡BOING!', '¡MUAC!'],
+    climax: '¡¡CLÍMAX FINAL!!',
+    endTitle: '💞 ¡Final del juego!',
+    endBody: 'Después de {r} reinicios, el Cohete y la Almeja por fin se han conocido… y vaya si se han conocido. Los vecinos han llamado a la policía dos veces.',
+    endReward: 'Recompensa permanente: toda la producción ×{m} y +{c} 🎈.',
+    endStats: 'Tu partida: {time} jugados, {clicks} clicks, {flies} moscas atrapadas y {prod} producido en total.',
+    endAgain: 'Puedes repetir «La gran noche» cuando quieras para seguir subiendo el multiplicador.',
+    endOk: '¡Otra vez!',
+  },
 
   stages: ['Novato', 'Aficionado', 'Entusiasta', 'Profesional', 'Estrella', 'Leyenda', 'Mito', 'Deidad', 'Cósmico'],
 
@@ -211,7 +233,7 @@ export const ES = {
     currency: { male: '🚀', female: '🐚', condom: '🎈' },
     combo: 'Combo ×{v}',
     prestige: 'Reempezar con multiplicador',
-    prestigeHead: '♻️ ×{a} → ×{b}',
+    prestigeHead: '♻️ ×{a}→×{b}',
     prestigeInfo: 'Ambos lados vuelven al nivel 1, pero toda la producción queda multiplicada para siempre: ahora ×{a}, después ×{b} (+{p} puntos, +{bp} % cada uno).',
     prestigeKeep: 'Conservas: condones 🎈 y sus mejoras, logros, estadísticas y ajustes. Pierdes: recursos, niveles, generadores y mejoras de cada lado.',
     prestigeMore: 'Cuanto más lejos llegues, más puntos: con el lado más avanzado al nivel {n} ganarías otro punto.',
@@ -230,6 +252,7 @@ export const ES = {
       multipliers: 'Multiplicadores',
       condoms: 'Condones ganados',
       problems: 'Problemas por sobreuso',
+      finales: 'Grandes noches',
     },
     mult: {
       level: 'Nivel', synergy: 'Química', achievements: 'Logros', prestige: 'Reempezar', upgrades: 'Mejoras globales', total: 'Total generadores',

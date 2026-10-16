@@ -18,6 +18,7 @@ export function achievementProgress(state: GameState, a: AchievementDef): number
     case 'generators': return s.reduce((t, side) => t + GENERATORS.reduce((u, g) => u + (side.generators[g.id] ?? 0), 0), 0);
     case 'choices': return s.reduce((t, side) => t + UPGRADES.filter((u) => u.group && (side.upgrades[u.id] ?? 0) > 0).length, 0);
     case 'prestiges': return state.stats.prestiges;
+    case 'finales': return state.finales;
   }
 }
 

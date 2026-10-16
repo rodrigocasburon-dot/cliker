@@ -8,7 +8,8 @@ export type AchievementCond =
   | { type: 'goldenFlies'; value: number }
   | { type: 'generators'; value: number }
   | { type: 'choices'; value: number }
-  | { type: 'prestiges'; value: number };
+  | { type: 'prestiges'; value: number }
+  | { type: 'finales'; value: number };
 
 export interface AchievementDef {
   id: string;
@@ -28,4 +29,5 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   ...make('gen', 'generators', [10, 100, 500, 1000]),
   ...make('cho', 'choices', [1, 10]),
   ...make('pre', 'prestiges', [1, 5]),
+  ...make('fin', 'finales', [1, 3]),
 ];

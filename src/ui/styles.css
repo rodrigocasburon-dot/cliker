@@ -549,3 +549,57 @@ button:disabled { cursor: not-allowed; }
   100% { transform: scale(var(--s, 1)) translateY(14px); opacity: 0; }
 }
 @keyframes drip { to { height: 50px; } }
+
+/* ───────── La gran noche ───────── */
+.finale-head { border-color: #ff4d8d; color: #ffd6ec; font-weight: 800; animation: glow-pink 1.2s ease-in-out infinite alternate; }
+@keyframes glow-pink { from { box-shadow: 0 0 2px #ff4d8d; } to { box-shadow: 0 0 14px #ff4d8d; } }
+.finale-box {
+  width: min(620px, 100%);
+  background: #2a0a24;
+  border: 3px solid #ff4d8d;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 6px 0 #0e0820;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+}
+.finale-box h2 { margin: 0; color: #ffd6ec; text-align: center; }
+.finale-hint { margin: 0; text-align: center; font-size: 13px; color: #ffb3d9; min-height: 2.4em; }
+.finale-stage { position: relative; border: 3px solid #0e0820; border-radius: 10px; overflow: hidden; touch-action: manipulation; user-select: none; }
+.finale-canvas { width: 100%; display: block; aspect-ratio: 160 / 110; image-rendering: pixelated; cursor: pointer; }
+.passion-bar { display: flex; align-items: center; gap: 6px; }
+.passion-track { flex: 1; height: 14px; background: #140b28; border: 2px solid #0e0820; border-radius: 7px; overflow: hidden; }
+.passion-fill { height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, #ff9fd0, #ff4d8d 60%, #ff1f5a); transition: transform 0.08s linear; }
+.finale-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.finale-btn { padding: 16px 8px; font-size: 18px; font-weight: 800; border-radius: 12px; border: 3px solid #0e0820; box-shadow: 0 4px 0 #0e0820; touch-action: manipulation; }
+.finale-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0e0820; }
+.finale-btn-male { background: var(--male-dark); }
+.finale-btn-female { background: var(--female-dark); }
+.finale-exit { align-self: center; }
+.censor-big { font-size: 20px; padding: 3px 14px; animation: none; }
+.finale-climax {
+  position: absolute; left: 50%; top: 30%;
+  transform: translate(-50%, -50%);
+  font-family: 'Impact', 'Arial Black', var(--font);
+  font-size: clamp(22px, 7vw, 40px);
+  color: var(--gold);
+  -webkit-text-stroke: 2px #0e0820;
+  white-space: nowrap;
+  animation: climax-text 3.6s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes climax-text {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-10deg); }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(4deg); }
+  20% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(1.1); }
+}
+
+/* Cabecera compacta en el móvil */
+.head-btn { white-space: nowrap; }
+@media (max-width: 600px) {
+  .top { flex-wrap: wrap; gap: 4px; }
+  .logo { font-size: 15px; white-space: nowrap; }
+  .head-btns { flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+  .head-btn { padding: 3px 7px; font-size: 12px; }
+}

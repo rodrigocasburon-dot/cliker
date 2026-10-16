@@ -119,6 +119,25 @@ export const BALANCE = {
     bonusPerPoint: 0.25,
   },
 
+  /**
+   * Paso final, «La gran noche»: se desbloquea tras reempezar `requiredRestarts` veces.
+   * Se llena una barra de pasión tocando a las dos mascotas alternando; al llegar al 100 %
+   * llega el clímax final, que da un multiplicador permanente y condones.
+   */
+  finale: {
+    requiredRestarts: 3,
+    passionPerHit: 4,
+    /** Tocar dos veces seguidas el mismo lado resta pasión. */
+    wrongPenalty: 3,
+    decayPerSecond: 5,
+    /** Pasión extra si el toque llega con buen ritmo (menos de rhythmSeconds desde el anterior). */
+    rhythmBonus: 2,
+    rhythmSeconds: 0.5,
+    rewardCondoms: 100,
+    /** Cada final completado suma esto al multiplicador permanente (×2, ×3…). */
+    multPerCompletion: 1,
+  },
+
   achievements: {
     bonusEach: 0.02,
   },
