@@ -5,7 +5,7 @@
  */
 import type { SideId } from '../core/state';
 
-export type Expression = 'idle' | 'blink' | 'happy' | 'hurt';
+export type Expression = 'idle' | 'blink' | 'happy' | 'hurt' | 'wink' | 'ecstasy';
 
 /** Accesorios que aparecen según las mejoras compradas (se combinan como bits). */
 export const LOOK = {
@@ -119,9 +119,8 @@ function makeCanvas(w: number, h: number): HTMLCanvasElement {
 
 // ───────────── Cara y accesorios (comunes) ─────────────
 
-function face(ctx: Ctx, cx: number, cy: number, expr: Expression, stage: number, ink: string) {
+function face(ctx: Ctx, cx: number, cy: number, expr: Expression, stage: number, ink: string, lips = false) {
   ctx.fillStyle = ink;
-  // Ojos
   if (expr === 'hurt') {
     // X X, boca ondulada y lagrimón
     for (const ox of [-5, 3]) { px(ctx, cx + ox, cy - 3); px(ctx, cx + ox + 2, cy - 3); px(ctx, cx + ox + 1, cy - 2); px(ctx, cx + ox, cy - 1); px(ctx, cx + ox + 2, cy - 1); }
@@ -130,20 +129,46 @@ function face(ctx: Ctx, cx: number, cy: number, expr: Expression, stage: number,
     px(ctx, cx + 6, cy, 1, 2); px(ctx, cx + 6, cy + 2, 2, 1);
     return;
   }
-  if (expr === 'happy') {
-    // ^ ^
+  // Ojos
+  const eyeOpen = (x: number) => {
+    px(ctx, x, cy - 3, 2, 3);
+    ctx.fillStyle = '#ffffff'; px(ctx, x, cy - 3); ctx.fillStyle = ink;
+  };
+  if (expr === 'ecstasy') {
+    // Ojos en blanco mirando arriba
+    for (const ox of [-6, 2]) {
+      ctx.fillStyle = '#ffffff'; px(ctx, cx + ox, cy - 4, 4, 3);
+      ctx.fillStyle = ink; px(ctx, cx + ox + 1, cy - 4, 2, 1);
+      px(ctx, cx + ox - 1, cy - 6, 2, 1); // ceja arqueada
+    }
+  } else if (expr === 'happy') {
     px(ctx, cx - 5, cy - 1); px(ctx, cx - 4, cy - 2); px(ctx, cx - 3, cy - 1);
     px(ctx, cx + 3, cy - 1); px(ctx, cx + 4, cy - 2); px(ctx, cx + 5, cy - 1);
   } else if (expr === 'blink') {
     px(ctx, cx - 5, cy - 1, 3, 1); px(ctx, cx + 3, cy - 1, 3, 1);
+  } else if (expr === 'wink') {
+    eyeOpen(cx - 5);
+    px(ctx, cx + 3, cy - 2); px(ctx, cx + 4, cy - 1); px(ctx, cx + 5, cy - 2);
   } else {
-    px(ctx, cx - 5, cy - 3, 2, 3); px(ctx, cx + 3, cy - 3, 2, 3);
-    ctx.fillStyle = '#ffffff';
-    px(ctx, cx - 5, cy - 3); px(ctx, cx + 3, cy - 3);
+    eyeOpen(cx - 5); eyeOpen(cx + 3);
+  }
+  if (lips && expr !== 'ecstasy') {
+    // Pestañas largas
     ctx.fillStyle = ink;
+    px(ctx, cx - 7, cy - 4); px(ctx, cx - 6, cy - 5); px(ctx, cx + 6, cy - 4); px(ctx, cx + 5, cy - 5);
   }
   // Boca
-  if (expr === 'happy') {
+  if (expr === 'ecstasy') {
+    // Boca abierta en «O» con lengua fuera
+    ctx.fillStyle = '#7a1630'; px(ctx, cx - 2, cy + 1, 5, 4);
+    ctx.fillStyle = '#ff5d8f'; px(ctx, cx - 1, cy + 4, 3, 3);
+    ctx.fillStyle = '#ffd0dd'; px(ctx, cx, cy + 5, 1, 1);
+  } else if (lips) {
+    // Labios carnosos (beso cuando está contenta)
+    ctx.fillStyle = '#e8304f';
+    if (expr === 'happy' || expr === 'wink') { px(ctx, cx - 1, cy + 2, 3, 1); px(ctx, cx - 2, cy + 3, 5, 2); px(ctx, cx - 1, cy + 5, 3, 1); ctx.fillStyle = '#7a1630'; px(ctx, cx, cy + 3, 1, 2); }
+    else { px(ctx, cx - 3, cy + 2, 3, 1); px(ctx, cx + 1, cy + 2, 3, 1); px(ctx, cx - 3, cy + 3, 7, 1); px(ctx, cx - 2, cy + 4, 5, 1); ctx.fillStyle = '#ff8aa0'; px(ctx, cx - 2, cy + 2, 1, 1); }
+  } else if (expr === 'happy' || expr === 'wink') {
     ctx.fillStyle = '#7a1630';
     px(ctx, cx - 2, cy + 2, 4, 3);
     ctx.fillStyle = '#ff7aa0';
@@ -151,22 +176,23 @@ function face(ctx: Ctx, cx: number, cy: number, expr: Expression, stage: number,
   } else {
     px(ctx, cx - 2, cy + 3, 1, 1); px(ctx, cx - 1, cy + 4, 2, 1); px(ctx, cx + 1, cy + 3, 1, 1);
   }
-  // Rubor
-  ctx.fillStyle = expr === 'happy' ? '#ff5d8f' : '#ff9fb8';
-  px(ctx, cx - 8, cy + 1, 2, 1); px(ctx, cx + 6, cy + 1, 2, 1);
+  // Rubor (más fuerte en éxtasis)
+  ctx.fillStyle = expr === 'ecstasy' ? '#ff2d6f' : expr === 'happy' ? '#ff5d8f' : '#ff9fb8';
+  const bw = expr === 'ecstasy' ? 3 : 2;
+  px(ctx, cx - 8, cy + 1, bw, 1); px(ctx, cx + 6, cy + 1, bw, 1);
+  if (expr === 'ecstasy') { ctx.fillStyle = '#9fe8ff'; px(ctx, cx + 8, cy - 5, 1, 2); }
 
-  // Accesorios por etapa
-  if (stage >= 1 && expr !== 'happy') {
-    // Gafas de sol
+  // Gafas de sol (etapa ≥ 1) solo con la cara tranquila
+  if (stage >= 1 && (expr === 'idle' || expr === 'blink')) {
     ctx.fillStyle = '#111';
     px(ctx, cx - 7, cy - 4, 5, 3); px(ctx, cx + 2, cy - 4, 5, 3); px(ctx, cx - 2, cy - 3, 4, 1);
-    ctx.fillStyle = '#6cf';
+    ctx.fillStyle = lips ? '#ff6fb0' : '#6cf';
     px(ctx, cx - 6, cy - 4, 1, 1); px(ctx, cx + 3, cy - 4, 1, 1);
   }
-  if (stage >= 3) {
-    // Bigote / pestañas según etapa
+  if (stage >= 3 && !lips && expr !== 'ecstasy') {
+    // Bigote de galán
     ctx.fillStyle = ink;
-    px(ctx, cx - 3, cy + 1, 2, 1); px(ctx, cx + 1, cy + 1, 2, 1);
+    px(ctx, cx - 3, cy + 1, 2, 1); px(ctx, cx + 1, cy + 1, 2, 1); px(ctx, cx - 4, cy + 2); px(ctx, cx + 3, cy + 2);
   }
 }
 
@@ -240,6 +266,64 @@ function sideProps(ctx: Ctx, flags: number, w: number, cy: number) {
   }
 }
 
+// ───────────── Ropa ─────────────
+
+/** Bata de seda abierta (por los lados del cuerpo), con cuello y cinturón suelto. */
+function silkRobe(ctx: Ctx, cx: number, cy: number, stage: number) {
+  const silk = stage >= 6 ? '#7a1f3d' : '#8f2a6b';
+  const shine = stage >= 6 ? '#b8325f' : '#c04a96';
+  for (let y = -12; y <= 20; y++) {
+    const half = Math.floor(13 * Math.sqrt(Math.max(0, 1 - (y * y) / (26 * 26))));
+    // Solo por fuera de la ventana (|x| > 10) para no tapar la cara
+    const w = Math.abs(y) < 10 ? Math.max(1, half - 10) : 4;
+    ctx.fillStyle = silk;
+    px(ctx, cx - half, cy + y, w, 1);
+    px(ctx, cx + half - w + 1, cy + y, w, 1);
+    ctx.fillStyle = shine;
+    px(ctx, cx - half + 1, cy + y, 1, 1);
+  }
+  // Cuello de solapa
+  ctx.fillStyle = shine;
+  px(ctx, cx - 9, cy - 12, 4, 2); px(ctx, cx + 6, cy - 12, 4, 2);
+  // Cinturón suelto colgando
+  ctx.fillStyle = '#ffcf3f';
+  px(ctx, cx - 9, cy + 12, 3, 1); px(ctx, cx - 9, cy + 13, 1, 5); px(ctx, cx + 7, cy + 12, 3, 1); px(ctx, cx + 9, cy + 13, 1, 4);
+}
+
+/** Tanga de leopardo sobre la base. */
+function leopardThong(ctx: Ctx, cx: number, y: number) {
+  ctx.fillStyle = '#e0a040';
+  for (let i = 0; i < 7; i++) px(ctx, cx - 12 + i, y + i, 25 - i * 2, 1);
+  ctx.fillStyle = '#3a2410';
+  for (const [dx, dy] of [[-9, 0], [-4, 1], [2, 0], [7, 1], [-6, 3], [0, 3], [4, 4], [-2, 5]]) px(ctx, cx + dx, y + dy, 2, 1);
+  ctx.fillStyle = '#e0a040';
+  px(ctx, cx - 13, y - 1, 3, 1); px(ctx, cx + 11, y - 1, 3, 1); // tiras
+}
+
+/** Liguero de encaje con lacito sobre la concha de abajo. */
+function garter(ctx: Ctx, cx: number, y: number) {
+  ctx.fillStyle = '#ffffff';
+  for (let x = -20; x <= 20; x++) px(ctx, cx + x, y + (Math.abs(x) % 3 === 0 ? 1 : 0), 1, 1);
+  ctx.fillStyle = '#111';
+  for (let x = -19; x <= 19; x += 3) px(ctx, cx + x, y + 1, 1, 1);
+  ctx.fillStyle = '#e8304f';
+  px(ctx, cx - 3, y - 1, 2, 3); px(ctx, cx + 2, y - 1, 2, 3); px(ctx, cx - 1, y, 3, 1);
+  // Tiras del liguero
+  ctx.fillStyle = '#111';
+  px(ctx, cx - 14, y + 2, 1, 4); px(ctx, cx + 14, y + 2, 1, 4);
+}
+
+/** Borlas de burlesque (pezoneras con flecos) en la concha de arriba. */
+function tassels(ctx: Ctx, cx: number, y: number, t: number) {
+  for (const dx of [-10, 10]) {
+    ellipse(ctx, cx + dx, y, 3, 2, '#ffcf3f');
+    ctx.fillStyle = '#e8304f';
+    px(ctx, cx + dx, y, 1, 1);
+    ctx.fillStyle = '#ffcf3f';
+    for (let k = -1; k <= 1; k++) px(ctx, cx + dx + k + (t % 2 ? k : 0), y + 3, 1, 3 + (k === 0 ? 1 : 0));
+  }
+}
+
 // ───────────── Mascota masculina: Cohete ─────────────
 
 const ROCKET_W = 56;
@@ -259,6 +343,13 @@ function drawRocket(stage: number, expr: Expression, flags: number): HTMLCanvasE
   }
   ctx.fillStyle = flags & LOOK.goldTrim ? '#ffcf3f' : p.accentShade;
   px(ctx, cx - 20, cy + 19, 7, 2); px(ctx, cx + 14, cy + 19, 7, 2);
+  // Dos depósitos redondos de combustible en la base (por qué no)
+  for (const dx of [-8, 8]) {
+    ellipse(ctx, cx + dx, cy + 27, 7, 6, p.body);
+    ellipse(ctx, cx + dx + 2, cy + 28, 4, 4, p.bodyShade, (x, y) => x > cx + dx + 1 && y > cy + 26);
+    ctx.fillStyle = '#ffffff';
+    px(ctx, cx + dx - 4, cy + 24, 2, 2);
+  }
   // Cuerpo
   ellipse(ctx, cx, cy, 13, 26, p.body);
   ellipse(ctx, cx + 5, cy + 2, 7, 22, p.bodyShade, (x) => x > cx + 6);
@@ -277,7 +368,9 @@ function drawRocket(stage: number, expr: Expression, flags: number): HTMLCanvasE
   px(ctx, cx - 6, cy + 25, 12, 4);
   ctx.fillStyle = '#3c3f4f';
   px(ctx, cx - 5, cy + 29, 10, 2);
-  // Accesorios grandes
+  // Ropa atrevida por etapas
+  if (stage >= 3) leopardThong(ctx, cx, cy + 17);
+  if (stage >= 2) silkRobe(ctx, cx, cy, stage);
   if (stage >= 4) chain(ctx, cx, cy + 10);
   if (stage >= 2) {
     // Banda en el morro
@@ -332,13 +425,14 @@ function drawClamBottom(stage: number, expr: Expression, flags: number): HTMLCan
   ellipse(ctx, cx + 3, cy - 7, 6, 7, p.accentShade, (x, y) => x > cx + 3 && y > cy - 9);
   ctx.fillStyle = '#ffffff';
   px(ctx, cx - 6, cy - 15, 2, 2);
-  face(ctx, cx, cy - 8, expr, stage, '#2a1230');
+  face(ctx, cx, cy - 8, expr, stage, '#2a1230', true);
   if (stage >= 4) chain(ctx, cx, cy + 2);
   if (stage >= 2) {
     // Lazo
     ctx.fillStyle = stage >= 6 ? '#ffcf3f' : '#ff3d7f';
     px(ctx, cx + 6, cy - 20, 3, 3); px(ctx, cx + 10, cy - 20, 3, 3); px(ctx, cx + 9, cy - 19, 1, 1);
   }
+  if (stage >= 2) garter(ctx, cx, cy + 5);
   if (stage >= 5) crown(ctx, cx, cy - 19);
   if (flags & LOOK.goldTrim) { ctx.fillStyle = '#ffcf3f'; px(ctx, cx - 25, cy, 51, 1); }
   accessories(ctx, flags, cx, cy - 8, cy - 19, cy + 4);
@@ -352,6 +446,7 @@ function drawClamTop(stage: number): HTMLCanvasElement {
   const ctx = c.getContext('2d')!;
   const p = paletteFor('female', stage);
   shell(ctx, 32, 40, true, p);
+  if (stage >= 3) tassels(ctx, 32, 33, stage);
   if (stage >= 7) halo(ctx, 32, 24);
   outline(c, p.outline);
   return c;

@@ -14,7 +14,7 @@ const W = 120;
 const H = 120;
 const MAX_PARTICLES = 260;
 
-interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number; floor: boolean }
+interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string; size: number; floor: boolean; heart?: boolean }
 interface Deco { x: number; y: number; speed: number; kind: number; phase: number }
 
 export class SideView {
@@ -33,7 +33,6 @@ export class SideView {
   private elChips: HTMLElement;
   private particles: Particle[] = [];
   private far: Deco[] = [];
-  private mid: Deco[] = [];
   private pulse = 0;
   private happyUntil = 0;
   private blinkAt = 2;
@@ -42,13 +41,17 @@ export class SideView {
   private lastStage = -1;
   private level = 1;
   private time = 0;
+  private ecstasyUntil = 0;
+  private censorUntil = 0;
+  private winkUntil = 0;
+  private splats = 0;
   private elHeatFill: HTMLElement;
   private elHeat: HTMLElement;
 
   constructor(readonly side: SideId, private onClick: (side: SideId, x: number, y: number) => void) {
     const s = ES.sides[side];
     this.canvas = el('canvas', { class: 'mascot-canvas', width: W, height: H, 'aria-label': `${s.mascot}: ${s.clickHint}`, role: 'button', tabindex: '0' }) as HTMLCanvasElement;
-    this.ctx = this.canvas.getContext('2d')!;
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!; // el mosaico de censura lee píxeles
     this.ctx.imageSmoothingEnabled = false;
     this.fx = el('div', { class: 'fx-layer', 'aria-hidden': 'true' });
     this.stage = el('div', { class: 'mascot-stage' }, [this.canvas, this.fx]);
@@ -91,7 +94,6 @@ export class SideView {
     });
 
     for (let i = 0; i < 18; i++) this.far.push({ x: Math.random() * W, y: Math.random() * 70, speed: 1 + Math.random() * 2, kind: 0, phase: Math.random() * 6 });
-    for (let i = 0; i < 6; i++) this.mid.push({ x: Math.random() * W, y: 15 + Math.random() * 60, speed: 4 + Math.random() * 4, kind: i % 3, phase: Math.random() * 6 });
   }
 
   /** Punto de emisión del chorro en coordenadas del canvas. */
@@ -106,10 +108,11 @@ export class SideView {
   private mascotScale() { return 1 + Math.min(200, this.level) * 0.0015; }
 
   /** Feedback de un click (manual o automático). */
-  burst(manual: boolean, amount: Decimal, notation: Parameters<typeof formatNumber>[1], clickX = 0.5, clickY = 0.4, shake = true): void {
+  burst(manual: boolean, amount: Decimal, notation: Parameters<typeof formatNumber>[1], clickX = 0.5, clickY = 0.4, shake = true, combo = 0): void {
     const pal = paletteFor(this.side, Math.max(0, this.lastStage));
     const e = this.emitter();
-    const n = manual ? 14 : 5;
+    // Cuanto más combo, más exagerado el chorro
+    const n = manual ? 14 + Math.min(30, combo) : 5;
     for (let i = 0; i < n && this.particles.length < MAX_PARTICLES; i++) {
       const spread = this.side === 'male' ? 0.9 : 0.5;
       const ang = -Math.PI / 2 + (Math.random() - 0.5) * spread;
@@ -122,9 +125,17 @@ export class SideView {
         size: Math.random() < 0.3 ? 2 : 1, floor: false,
       });
     }
+    // Corazoncitos que salen flotando
+    if (manual && Math.random() < 0.6) {
+      this.particles.push({ x: e.x + (Math.random() - 0.5) * 20, y: e.y + 10, vx: (Math.random() - 0.5) * 20, vy: -25 - Math.random() * 15, life: 0, max: 1.4, color: '#ff4d8d', size: 1, floor: false, heart: true });
+    }
     this.pulse = 1;
     if (manual) {
       this.happyUntil = this.time + 0.35;
+      if (combo >= 12) this.ecstasyUntil = this.time + 0.6;
+      // Censura de broma en los clicks gordos
+      if (combo >= 10 ? Math.random() < 0.35 : Math.random() < 0.08) this.censor();
+      if (combo >= 20 && Math.random() < 0.25) this.splat();
       this.floating(`+${formatNumber(amount, notation)}`, clickX, clickY, 'float-num');
       if (Math.random() < 0.3) {
         const list = ES.sides[this.side].onomatopoeia;
@@ -146,6 +157,31 @@ export class SideView {
     this.fx.appendChild(span);
     this.floatCount++;
     span.addEventListener('animationend', () => { span.remove(); this.floatCount--; }, { once: true });
+  }
+
+  /** Barra de «CENSURADO» y mosaico sobre el chorro. */
+  private censor() {
+    this.censorUntil = this.time + 0.5;
+    if (this.fx.querySelector('.censor')) return;
+    const e = this.emitter();
+    const bar = el('span', { class: 'censor' }, ES.ui.censored);
+    bar.style.left = `${(e.x / W) * 100}%`;
+    bar.style.top = `${((e.y - 6) / H) * 100}%`;
+    bar.style.setProperty('--rot', `${(Math.random() - 0.5) * 16}deg`);
+    this.fx.append(bar);
+    setTimeout(() => bar.remove(), 520);
+  }
+
+  /** Salpicón que mancha la pantalla un momento. */
+  private splat() {
+    if (this.splats >= 3) return;
+    const sp = el('span', { class: `splat splat-${this.side}` });
+    sp.style.left = `${10 + Math.random() * 70}%`;
+    sp.style.top = `${5 + Math.random() * 60}%`;
+    sp.style.setProperty('--s', `${0.7 + Math.random() * 0.8}`);
+    this.fx.append(sp);
+    this.splats++;
+    sp.addEventListener('animationend', () => { sp.remove(); this.splats--; }, { once: true });
   }
 
   /** Texto flotante pequeño (condones…). */
@@ -196,7 +232,7 @@ export class SideView {
     const sick = r.problemActive;
     const hot = !sick && side.heat >= BALANCE.overuse.warnAt;
     const flags = this.lookFlags(state, r);
-    const pal = paletteFor(this.side, stage);
+
     const ctx = this.ctx;
 
     // Clicks automáticos: efecto visual a su ritmo (máx. 8 por segundo)
@@ -208,33 +244,34 @@ export class SideView {
       }
     }
 
-    // Fondo con parallax
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, pal.sky[0]);
-    grad.addColorStop(1, pal.sky[1]);
-    ctx.fillStyle = grad;
+    // Habitación de motel: pared con luz roja, neón XXX, cortinas de terciopelo y cama de corazón
+    const gy = this.groundY();
+    const wall = ctx.createLinearGradient(0, 0, 0, H);
+    wall.addColorStop(0, this.side === 'male' ? '#1c0a24' : '#2a0a24');
+    wall.addColorStop(1, this.side === 'male' ? '#4a1030' : '#6a1748');
+    ctx.fillStyle = wall;
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = pal.far;
+    // Papel pintado de rombos
+    ctx.fillStyle = 'rgba(255,90,140,0.07)';
+    for (let y = 0; y < gy; y += 10) for (let x = (y / 10) % 2 ? 5 : 0; x < W; x += 10) ctx.fillRect(x, y, 2, 2);
+    this.drawNeon();
+    // Corazones flotando hacia arriba (parallax)
+    ctx.globalAlpha = 0.35;
     for (const d of this.far) {
-      d.x = (d.x - d.speed * dt + W) % W;
-      const tw = Math.sin(this.time * 2 + d.phase) > 0.6 ? 2 : 1;
-      ctx.globalAlpha = 0.5 + 0.5 * Math.sin(this.time + d.phase);
-      ctx.fillRect(Math.round(d.x), Math.round(d.y), tw, 1);
-    }
-    ctx.globalAlpha = 0.55;
-    for (const d of this.mid) {
-      d.x = (d.x - d.speed * dt + W + 10) % (W + 10) - 5;
-      this.drawDeco(d, pal.mid);
+      d.y -= d.speed * dt * 2;
+      if (d.y < -5) { d.y = gy; d.x = Math.random() * W; }
+      this.drawHeart(Math.round(d.x), Math.round(d.y), '#ff7ab0', d.kind);
     }
     ctx.globalAlpha = 1;
-    // Suelo
-    const gy = this.groundY();
-    ctx.fillStyle = pal.ground;
+    this.drawBed(gy);
+    this.drawCurtains();
+    // Moqueta
+    ctx.fillStyle = '#5a0f22';
     ctx.fillRect(0, gy, W, H - gy);
-    ctx.fillStyle = pal.groundShade;
-    const off = Math.floor(this.time * 6) % 8;
-    for (let x = -8; x < W; x += 8) ctx.fillRect(x + off, gy + 3, 4, 1);
-    for (let x = -8; x < W; x += 12) ctx.fillRect(x + (off * 2) % 12, gy + 8, 6, 1);
+    ctx.fillStyle = '#3d0817';
+    const off = Math.floor(this.time * 2) % 6;
+    for (let x = -6; x < W; x += 6) ctx.fillRect(x + off, gy + 4, 2, 1);
+    for (let x = -6; x < W; x += 9) ctx.fillRect(x + (off * 2) % 9, gy + 9, 3, 1);
 
     // Aura de etapas altas
     if (stage >= 6) {
@@ -250,12 +287,22 @@ export class SideView {
 
     // Mascota con squash & stretch
     this.pulse = Math.max(0, this.pulse - dt * 5);
-    if (this.time > this.blinkAt + 0.12) this.blinkAt = this.time + 2 + Math.random() * 3;
-    const expr: Expression = sick ? 'hurt' : this.time < this.happyUntil ? 'happy' : this.time > this.blinkAt ? 'blink' : 'idle';
+    if (this.time > this.blinkAt + 0.12) {
+      this.blinkAt = this.time + 2 + Math.random() * 3;
+      if (Math.random() < 0.35) this.winkUntil = this.blinkAt + 0.5; // a veces guiña en vez de parpadear
+    }
+    const expr: Expression = sick ? 'hurt'
+      : this.time < this.ecstasyUntil ? 'ecstasy'
+      : this.time < this.happyUntil ? 'happy'
+      : this.time > this.blinkAt ? (this.time < this.winkUntil ? 'wink' : 'blink') : 'idle';
     const scale = this.mascotScale();
     const squash = 1 - this.pulse * 0.14;
     const stretch = 1 + this.pulse * 0.1;
+    // Temblequeo justo antes del chorro + vaivén
     const bob = Math.round(Math.sin(this.time * 2.2) * 1.5);
+    const jitter = this.pulse > 0.4 ? Math.round((Math.random() - 0.5) * 3) : 0;
+    ctx.save();
+    ctx.translate(jitter, 0);
     const ext = externalFrame(this.side);
     if (ext) {
       const fw = ext.height;
@@ -284,6 +331,7 @@ export class SideView {
       ctx.drawImage(bottom, x, y, Math.round(sw), Math.round(sh));
       ctx.drawImage(top, x, y - (sick ? Math.round(4 * scale) : open), Math.round(sw), Math.round(sh));
     }
+    ctx.restore();
     if (sick) this.drawProblem(gy);
     if (hot) this.drawSteam(gy, scale);
 
@@ -304,12 +352,18 @@ export class SideView {
         p.size = 1;
       }
       ctx.globalAlpha = Math.min(1, (p.max - p.life) * 2);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size + (p.floor ? 0 : 1));
+      if (p.heart) {
+        p.vy += -g * dt * 1.1; // los corazones flotan
+        this.drawHeart(Math.round(p.x), Math.round(p.y), p.color, 0);
+      } else {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size + (p.floor ? 0 : 1));
+      }
       alive.push(p);
     }
     ctx.globalAlpha = 1;
     this.particles = alive;
+    if (this.time < this.censorUntil) this.mosaic();
   }
 
   /** Accesorios de la mascota según lo que se ha comprado. */
@@ -360,21 +414,108 @@ export class SideView {
     ctx.globalAlpha = 1;
   }
 
-  private drawDeco(d: Deco, color: string) {
-    const ctx = this.ctx;
-    const x = Math.round(d.x);
-    const y = Math.round(d.y + Math.sin(this.time + d.phase) * 2);
-    ctx.fillStyle = color;
-    if (this.side === 'female') {
-      // Corazón 5×4
-      ctx.fillRect(x, y, 2, 1); ctx.fillRect(x + 3, y, 2, 1);
-      ctx.fillRect(x - 1, y + 1, 7, 1); ctx.fillRect(x, y + 2, 5, 1); ctx.fillRect(x + 1, y + 3, 3, 1); ctx.fillRect(x + 2, y + 4, 1, 1);
-    } else if (d.kind === 0) {
-      // Planeta
-      ctx.fillRect(x, y, 4, 4); ctx.fillRect(x - 1, y + 1, 6, 2); ctx.fillRect(x - 3, y + 2, 10, 1);
-    } else {
-      // Estrella de 5 px
-      ctx.fillRect(x + 2, y, 1, 5); ctx.fillRect(x, y + 2, 5, 1);
+  /** Pixela la zona del chorro (censura). */
+  private mosaic() {
+    const e = this.emitter();
+    const bw = 30;
+    const bh = 26;
+    const x0 = Math.max(0, Math.round(e.x - bw / 2));
+    const y0 = Math.max(0, Math.round(e.y - bh / 2 - 4));
+    const img = this.ctx.getImageData(x0, y0, bw, bh).data;
+    const B = 5;
+    for (let by = 0; by < bh; by += B) {
+      for (let bx = 0; bx < bw; bx += B) {
+        const i = ((by + 2) * bw + (bx + 2)) * 4;
+        this.ctx.fillStyle = `rgb(${img[i]},${img[i + 1]},${img[i + 2]})`;
+        this.ctx.fillRect(x0 + bx, y0 + by, B, B);
+      }
     }
   }
+
+  private drawHeart(x: number, y: number, color: string, big: number) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    if (big % 3 === 2) {
+      ctx.fillRect(x, y, 2, 1); ctx.fillRect(x + 3, y, 2, 1);
+      ctx.fillRect(x - 1, y + 1, 7, 1); ctx.fillRect(x, y + 2, 5, 1); ctx.fillRect(x + 1, y + 3, 3, 1); ctx.fillRect(x + 2, y + 4, 1, 1);
+    } else {
+      ctx.fillRect(x, y, 1, 1); ctx.fillRect(x + 2, y, 1, 1); ctx.fillRect(x, y + 1, 3, 1); ctx.fillRect(x + 1, y + 2, 1, 1);
+    }
+  }
+
+  /** Letrero de neón «XXX» que parpadea. */
+  private drawNeon() {
+    const ctx = this.ctx;
+    const flicker = Math.sin(this.time * 13) > 0.92 || (this.time % 7) < 0.15;
+    const on = !flicker;
+    const color = this.side === 'male' ? '#ff2d6f' : '#ff5ec4';
+    const x0 = W / 2 - 15;
+    const y0 = 6;
+    // Marco
+    ctx.fillStyle = '#12040e';
+    ctx.fillRect(x0 - 4, y0 - 3, 38, 13);
+    for (let k = 0; k < 3; k++) {
+      const x = x0 + k * 11;
+      if (on) {
+        ctx.fillStyle = 'rgba(255,60,140,0.25)';
+        ctx.fillRect(x - 1, y0 - 1, 9, 9);
+      }
+      ctx.fillStyle = on ? color : '#4a1030';
+      for (let i = 0; i < 7; i++) { ctx.fillRect(x + i, y0 + i, 1, 1); ctx.fillRect(x + 6 - i, y0 + i, 1, 1); }
+    }
+    if (on) {
+      ctx.fillStyle = 'rgba(255,40,100,0.06)';
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  /** Cabecero en forma de corazón y colchón detrás de la mascota. */
+  private drawBed(gy: number) {
+    const ctx = this.ctx;
+    const cx = W / 2;
+    const top = gy - 58;
+    ctx.fillStyle = '#9c1450';
+    for (let y = 0; y < 44; y++) {
+      // Corazón: dos lóbulos arriba y punta abajo (tapada por el colchón)
+      const t = y / 44;
+      const half = y < 12 ? Math.sqrt(Math.max(0, 1 - Math.pow((12 - y) / 12, 2))) * 30 : 30 * (1 - (t - 0.27) * 0.9);
+      const notch = y < 12 ? Math.max(0, 8 - y) : 0;
+      if (half <= 0) continue;
+      ctx.fillRect(Math.round(cx - half), top + y, Math.round(half - notch / 2), 1);
+      ctx.fillRect(Math.round(cx + notch / 2), top + y, Math.round(half - notch / 2), 1);
+    }
+    // Capitoné
+    ctx.fillStyle = '#c2185b';
+    for (let y = top + 8; y < top + 34; y += 7) for (let x = cx - 20; x <= cx + 20; x += 8) ctx.fillRect(x + ((y - top) % 14 ? 4 : 0), y, 1, 1);
+    // Colchón y sábanas de satén
+    ctx.fillStyle = '#ffd0e4';
+    ctx.fillRect(cx - 40, gy - 14, 80, 14);
+    ctx.fillStyle = '#ff9cc4';
+    ctx.fillRect(cx - 40, gy - 14, 80, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx - 30, gy - 11, 12, 1);
+  }
+
+  /** Cortinas de terciopelo rojo a los lados, recogidas con borla dorada. */
+  private drawCurtains() {
+    const ctx = this.ctx;
+    const sway = Math.sin(this.time * 0.8) * 1;
+    for (const left of [true, false]) {
+      for (let y = 0; y < H; y++) {
+        const bulge = y > 50 && y < 70 ? 3 : y > 70 ? 8 + (y - 70) * 0.15 : 9 - y * 0.06;
+        const w = Math.max(3, Math.round(bulge + sway));
+        const x = left ? 0 : W - w;
+        ctx.fillStyle = '#8a0f2a';
+        ctx.fillRect(x, y, w, 1);
+        ctx.fillStyle = '#5a0a1c';
+        ctx.fillRect(left ? x + w - 2 : x + 1, y, 1, 1);
+        if (y % 6 < 2) { ctx.fillStyle = '#b0193a'; ctx.fillRect(left ? x + 1 : x + w - 2, y, 1, 1); }
+      }
+      ctx.fillStyle = '#ffcf3f';
+      ctx.fillRect(left ? 1 : W - 6, 58, 5, 2);
+      ctx.fillRect(left ? 3 : W - 4, 60, 1, 5);
+    }
+  }
+
+
 }

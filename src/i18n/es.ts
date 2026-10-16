@@ -25,7 +25,7 @@ export const ES = {
       problemChip: '🧊 ¡Dolor de huevos! {t}',
       problemToast: '🧊 ¡Ay! Al Cohete le duelen los huevos de tanto darle. Clicks al 10 % durante un rato.',
       problemEnd: '🚀 El Cohete ya está recuperado.',
-      onomatopoeia: ['¡PLOF!', '¡CHOF!', '¡ZAS!', '¡FIUUU!', '¡SPLASH!', '¡BOING!', '¡AAAH!'],
+      onomatopoeia: ['¡PLOF!', '¡CHOF!', '¡ZAS!', '¡FIUUU!', '¡SPLASH!', '¡BOING!', '¡AAAH!', '¡OH SÍ!', '¡UFFF!', '¡AHÍ VA!', '¡MADRE MÍA!', '¡QUÉ ALIVIO!'],
     },
     female: {
       name: 'Lado femenino',
@@ -38,7 +38,7 @@ export const ES = {
       problemChip: '🩸 ¡Le ha venido la regla! {t}',
       problemToast: '🩸 ¡A la Almeja le ha venido la regla de tanto darle! Clicks al 10 % durante un rato.',
       problemEnd: '🐚 La Almeja ya está como nueva.',
-      onomatopoeia: ['¡FSSSH!', '¡SPLISH!', '¡GLUP!', '¡CHAPOTEO!', '¡OOOH!', '¡PSSST!', '¡SPLASH!'],
+      onomatopoeia: ['¡FSSSH!', '¡SPLISH!', '¡GLUP!', '¡CHAPOTEO!', '¡OOOH!', '¡PSSST!', '¡SPLASH!', '¡OH SÍ!', '¡MÁS!', '¡AAAAH!', '¡QUÉ RICO!', '¡NO PARES!'],
     },
   },
 
@@ -203,6 +203,7 @@ export const ES = {
     sourceAuto: 'Automatización',
     autoOn: '🤖 Auto {v}/s',
     flyBoost: '🪰 ×{m} {t}',
+    censored: 'CENSURADO',
     heat: 'Calentón: si haces demasiados clicks seguidos, el lado se resiente',
     condoms: 'Condones',
     condomsHelp: 'Moneda compartida: se ganan al subir de nivel (+1, y +5 cada 10 niveles), al atrapar moscas (+1, dorada +5), con cada logro (+3) y, a veces, al hacer click. Sus mejoras afectan a AMBOS lados y se conservan al hacer prestigio.',

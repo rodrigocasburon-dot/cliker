@@ -36,3 +36,6 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 - **Sobreuso**: calor por click (3) que baja solo (14/s, ~4.7 clicks/s sostenibles por lado). Al llegar a 100: problema de 25 s (clicks ×0.1, sin combo, automatización ×0.5). Es humor cartoon: bolsa de hielo / bolsa de agua caliente y cara de «X X».
 - **Clicks y multiplicadores más fuertes**: «Dedos ágiles» +2 por nivel (hasta 20 niveles), «Técnica depurada» ×2, «Muñecas» con el doble de %, globales ×2/×3, mejoras de generador hasta ×4, combo +4 % por stack (máx. 40).
 - Para que el ritmo siga en los objetivos: **cada click automático vale el 25 % de uno manual** (si no, la automatización con clicks tan fuertes rompía la economía; además así tus clicks son los que de verdad cuentan), XP base 300 y ritmo de generadores ×90.
+
+## Tercera versión (estética más picante)
+- Se sube el tono con doble sentido, ropa atrevida, censura de broma, salpicones y ambiente de motel, pero sin dibujar genitales ni actos sexuales explícitos: el juego está publicado en abierto y el humor funciona mejor sugiriendo.

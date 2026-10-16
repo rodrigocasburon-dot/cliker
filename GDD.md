@@ -104,6 +104,10 @@ En la partida simulada (con muchas moscas atrapadas) se ganan ~8 000 condones ha
 - Tamaño: +0.15 % por nivel (hasta +30 % en el 200). Paleta y accesorios de etapa cada 25 niveles.
 - Accesorios por mejoras: antena (automatización), cinta (mejoras de click), ribete dorado (Técnica depurada ≥ 4), corazón (química), matamoscas (mejoras de mosca con condones), globo-condón (≥ 3 mejoras de condones).
 - Estados: cara de «X X» con bolsa de hielo / de agua caliente durante el problema; vapor al recalentarse.
+- Ropa atrevida por etapas: Cohete con bata de seda abierta (25+) y tanga de leopardo (75+); Almeja con liguero de encaje (50+) y borlas de burlesque (75+). El Cohete tiene dos depósitos redondos en la base y la Almeja labios carnosos, pestañas y guiños.
+- Clímax exagerado: chorro mayor cuanto más combo, cara de éxtasis (ojos en blanco y lengua fuera) desde 12 de combo, corazones, gemidos escritos, censura de broma (barra «CENSURADO» y mosaico sobre el chorro) y salpicones que manchan la pantalla con combos altos.
+- Escenario: habitación de motel con luz roja, papel pintado, neón «XXX» que parpadea, cortinas de terciopelo, cama con cabecero de corazón y moqueta.
+- Todo es doble sentido y caricatura: no se dibujan genitales ni actos sexuales.
 
 ### 4.8 Offline, prestigio y logros
 - Offline: producción pasiva + automatización mientras no se juega (también con la pestaña oculta), con tope de 8 h y aviso de bienvenida con lo ganado y los niveles subidos.

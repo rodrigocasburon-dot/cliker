@@ -506,3 +506,46 @@ button:disabled { cursor: not-allowed; }
 .side.sick { border-color: var(--danger); }
 .side.sick .chips { color: #ff9a9a; }
 .side.sick .mascot-canvas { filter: saturate(0.6); }
+
+/* ───────── Picante ───────── */
+.censor {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+  background: #000;
+  color: #fff;
+  font-family: 'Impact', 'Arial Black', var(--font);
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border: 1px solid #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: censor-in 0.12s steps(2);
+}
+@keyframes censor-in { from { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)) scale(1.4); } }
+.splat {
+  position: absolute;
+  width: 70px; height: 60px;
+  transform: scale(var(--s, 1));
+  border-radius: 46% 54% 40% 60% / 55% 40% 60% 45%;
+  pointer-events: none;
+  opacity: 0.9;
+  animation: splat 1.4s ease-in forwards;
+}
+.splat-male { background: radial-gradient(circle at 35% 35%, #fff 0 18%, #f2efe2 40%, rgba(242, 239, 226, 0.85) 62%, transparent 70%); }
+.splat-female { background: radial-gradient(circle at 35% 35%, #e8fbff 0 18%, #9fe8ff 40%, rgba(159, 232, 255, 0.8) 62%, transparent 70%); }
+.splat::after {
+  content: '';
+  position: absolute; left: 40%; top: 70%;
+  width: 9px; height: 26px;
+  border-radius: 0 0 6px 6px;
+  background: inherit;
+  animation: drip 1.4s ease-in forwards;
+}
+@keyframes splat {
+  0% { transform: scale(calc(var(--s, 1) * 0.3)); opacity: 1; }
+  12% { transform: scale(var(--s, 1)); }
+  70% { opacity: 0.85; }
+  100% { transform: scale(var(--s, 1)) translateY(14px); opacity: 0; }
+}
+@keyframes drip { to { height: 50px; } }

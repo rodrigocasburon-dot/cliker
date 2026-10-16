@@ -213,7 +213,7 @@ export class App {
     this.events.length = 0;
     const gain = click(this.state, id, this.events);
     for (const e of this.events) this.handleEvent(e);
-    this.sides[id].burst(true, gain, this.state.settings.notation, x, y, this.state.settings.screenShake);
+    this.sides[id].burst(true, gain, this.state.settings.notation, x, y, this.state.settings.screenShake, this.state.sides[id].combo);
     audio.play('click', id);
     if (this.shop.side !== id && this.state.sides[id].clicks <= 1) this.shop.setSide(id);
     void before;
