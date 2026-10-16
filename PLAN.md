@@ -1,6 +1,6 @@
 # PLAN — Clicker Clímax
 
-Proyecto TypeScript + Vite en `clicker/`. Cada fase termina ejecutando el juego (build + tests + sim) y con un commit.
+Proyecto TypeScript + Vite. Cada fase termina ejecutando el juego (build + tests + sim) y con un commit.
 
 | Fase | Contenido | Criterio de aceptación | Estado |
 |---|---|---|---|

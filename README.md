@@ -2,21 +2,25 @@
 
 Clicker/idle **+18** de humor cartoon y desvergonzado. Gestiona dos fábricas paralelas —el **Cohete** (lado masculino, recurso `semen`) y la **Almeja** (lado femenino, recurso `squirt`)—, sube cada lado hasta el **nivel 200**, caza moscas y haz prestigio. Todo es pixel art estilizado y no explícito.
 
-## Cómo ejecutarlo
+## Cómo jugar ya
+
+Abre **`index.html`** con doble clic. Es el juego completo en un solo archivo: no hace falta instalar nada ni tener servidor. La partida se guarda en el navegador.
+
+## Desarrollo
 
 Requiere Node 20 o superior.
 
 ```bash
-cd clicker
 npm install
-npm run dev      # servidor de desarrollo (http://localhost:5173)
+npm run dev      # servidor de desarrollo (abre http://localhost:5173/dev.html)
 npm test         # tests unitarios (Vitest)
-npm run build    # comprueba tipos y genera dist/ (estático, rutas relativas)
-npm run preview  # sirve el build
+npm run build    # comprueba tipos y regenera index.html (un solo archivo autónomo)
 npm run sim      # simulación de una partida completa con tiempos por nivel
 ```
 
-`dist/` se puede servir desde cualquier carpeta (GitHub Pages, itch.io, un servidor estático…).
+- `dev.html` es la página de desarrollo: carga el código de `src/` y **solo funciona con `npm run dev`** (si se abre con doble clic se queda en blanco).
+- `index.html` es el resultado del build: después de cambiar código o balance, ejecuta `npm run build` para regenerarlo.
+- El juego también se puede publicar tal cual (por ejemplo en GitHub Pages): basta con `index.html`.
 
 ### Opciones del simulador
 
@@ -65,7 +69,8 @@ Los textos visibles (nombres de recursos, generadores, mejoras, logros, interfaz
 Los sprites son placeholders procedurales dibujados en canvas (`src/ui/sprites.ts`). Para usar arte final, coloca en `public/assets/`:
 
 - Un PNG por mascota (p. ej. `male.png`, `female.png`): una tira horizontal de **9 fotogramas cuadrados** (uno por etapa, cada 25 niveles: 0–24, 25–49, … 200). Se dibujan con píxeles nítidos; se recomienda 64×64 px por fotograma.
-- Decláralos en `public/assets/assets.json`: `{ "male": "male.png", "female": "female.png" }`. Con `null` se usan los sprites procedurales. Los fondos, partículas y la mosca siguen siendo procedurales (ver `sideView.ts` y `sprites.ts`).
+- Decláralos en `public/assets/assets.json`: `{ "male": "male.png", "female": "female.png" }`. Con `null` se usan los sprites procedurales.
+- El arte externo solo se carga cuando el juego se sirve por http(s) (`npm run dev`, GitHub Pages…); abierto con doble clic se usan los sprites procedurales. Los fondos, partículas y la mosca siguen siendo procedurales (ver `sideView.ts` y `sprites.ts`).
 
 El audio (efectos 8-bit y música chiptune) se genera con Web Audio API en `src/audio/audio.ts`.
 

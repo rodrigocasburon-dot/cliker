@@ -296,6 +296,8 @@ const external: Partial<Record<SideId, HTMLImageElement>> = {};
  * archivos listados, para no provocar errores 404 en consola.
  */
 export function loadExternalAssets(base = import.meta.env.BASE_URL ?? './'): void {
+  // Abierto con doble clic (file://) no se puede usar fetch: se usan los sprites procedurales.
+  if (location.protocol === 'file:') return;
   fetch(`${base}assets/assets.json`)
     .then((r) => (r.ok ? r.json() : {}))
     .then((cfg: Partial<Record<SideId, string | null>>) => {

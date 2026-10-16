@@ -3,7 +3,8 @@
 Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 
 ## Proyecto
-- **Ubicación**: el repositorio ya contiene otra app (Dibujapp, `index.html` en la raíz). El juego vive en `clicker/` como proyecto Vite independiente, para no pisarla. `PLAN.md`, `GDD.md`, `DECISIONES.md` y `README.md` están dentro de `clicker/`.
+- **Un solo archivo**: el build (vite-plugin-singlefile) incrusta JS y CSS en `index.html` para que el juego se abra con doble clic (`file://`), como Dibujapp. La entrada de desarrollo es `dev.html`.
+- **Repositorio propio**: empezó dentro del repo de Dibujapp (`clicker/`) y se separó a su propio repositorio conservando el historial.
 - **Commits por fase**: las fases 1–5 comparten la capa de lógica pura (`src/systems`), así que se desarrollaron juntas y se validaron con tests y simulador antes de la UI. Los commits agrupan fases contiguas.
 - **Números grandes**: `break_eternity.js` (admite cifras más allá de 1e308, útil tras varios prestigios). Los multiplicadores internos (que nunca pasan de ~1e15) son `number` por rendimiento.
 
