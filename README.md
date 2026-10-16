@@ -6,6 +6,16 @@ Clicker/idle **+18** de humor cartoon y desvergonzado. Gestiona dos fábricas pa
 
 Abre **`index.html`** con doble clic. Es el juego completo en un solo archivo: no hace falta instalar nada ni tener servidor. La partida se guarda en el navegador.
 
+## Jugar en el móvil
+
+1. Activa GitHub Pages: en el repositorio, **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama **`main`**, carpeta **`/ (root)`**, y **Save**.
+2. En uno o dos minutos el juego estará en **https://rodrigocasburon-dot.github.io/cliker/**. Ábrelo en el navegador del móvil.
+3. Para tenerlo como una app (pantalla completa y con icono):
+   - **Android (Chrome)**: menú ⋮ → **Añadir a pantalla de inicio** / **Instalar aplicación**.
+   - **iPhone (Safari)**: botón Compartir → **Añadir a pantalla de inicio**.
+
+La partida se guarda en el navegador de cada dispositivo. Para pasarla del ordenador al móvil (o al revés) usa **Ajustes → Exportar partida** en uno e **Importar partida** en el otro.
+
 ## Desarrollo
 
 Requiere Node 20 o superior.
@@ -66,10 +76,10 @@ Los textos visibles (nombres de recursos, generadores, mejoras, logros, interfaz
 
 ## Cómo sustituir el arte
 
-Los sprites son placeholders procedurales dibujados en canvas (`src/ui/sprites.ts`). Para usar arte final, coloca en `public/assets/`:
+Los sprites son placeholders procedurales dibujados en canvas (`src/ui/sprites.ts`). Para usar arte final, coloca en `assets/`:
 
 - Un PNG por mascota (p. ej. `male.png`, `female.png`): una tira horizontal de **9 fotogramas cuadrados** (uno por etapa, cada 25 niveles: 0–24, 25–49, … 200). Se dibujan con píxeles nítidos; se recomienda 64×64 px por fotograma.
-- Decláralos en `public/assets/assets.json`: `{ "male": "male.png", "female": "female.png" }`. Con `null` se usan los sprites procedurales.
+- Decláralos en `assets/assets.json`: `{ "male": "male.png", "female": "female.png" }`. Con `null` se usan los sprites procedurales.
 - El arte externo solo se carga cuando el juego se sirve por http(s) (`npm run dev`, GitHub Pages…); abierto con doble clic se usan los sprites procedurales. Los fondos, partículas y la mosca siguen siendo procedurales (ver `sideView.ts` y `sprites.ts`).
 
 El audio (efectos 8-bit y música chiptune) se genera con Web Audio API en `src/audio/audio.ts`.

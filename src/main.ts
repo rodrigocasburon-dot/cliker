@@ -6,6 +6,17 @@ import { applyOffline } from './systems/offline';
 import { App } from './ui/app';
 import { el } from './ui/dom';
 
+// Instalable en el móvil («Añadir a pantalla de inicio») cuando se sirve por web (p. ej. GitHub Pages).
+// Abierto con doble clic (file://) no se enlazan para no provocar errores en consola.
+if (location.protocol !== 'file:') {
+  for (const [rel, href] of [['manifest', 'manifest.webmanifest'], ['apple-touch-icon', 'apple-touch-icon.png']]) {
+    const link = document.createElement('link');
+    link.rel = rel;
+    link.href = href;
+    document.head.append(link);
+  }
+}
+
 const mount = document.getElementById('app')!;
 const state = loadFromStorage() ?? createState();
 

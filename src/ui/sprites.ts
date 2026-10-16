@@ -1,6 +1,6 @@
 /**
  * Sprites pixel art procedurales (placeholder). Todo se dibuja a baja resolución en canvas y se
- * escala con `image-rendering: pixelated`. Para usar arte final, deja el PNG en public/assets/
+ * escala con `image-rendering: pixelated`. Para usar arte final, deja el PNG en assets/
  * (tira horizontal de 9 fotogramas cuadrados, uno por etapa) y decláralo en assets.json.
  */
 import type { SideId } from '../core/state';
@@ -292,7 +292,7 @@ const cache = new Map<string, HTMLCanvasElement>();
 const external: Partial<Record<SideId, HTMLImageElement>> = {};
 
 /**
- * Carga el arte final declarado en public/assets/assets.json (si lo hay). Solo se piden los
+ * Carga el arte final declarado en assets/assets.json (si lo hay). Solo se piden los
  * archivos listados, para no provocar errores 404 en consola.
  */
 export function loadExternalAssets(base = import.meta.env.BASE_URL ?? './'): void {

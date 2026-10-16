@@ -6,6 +6,8 @@ export default defineConfig({
   // index.html con doble clic (file://), sin servidor.
   plugins: [viteSingleFile()],
   base: './',
+  // assets/ (arte final opcional) se sirve tal cual desde la raíz, igual en desarrollo y en GitHub Pages.
+  publicDir: false,
   server: { open: '/dev.html' },
   build: {
     rollupOptions: { input: 'dev.html' },

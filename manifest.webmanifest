@@ -1,0 +1,16 @@
+{
+  "name": "Clicker Clímax",
+  "short_name": "Clímax",
+  "description": "Clicker/idle +18 de humor cartoon.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1030",
+  "theme_color": "#1a1030",
+  "icons": [
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
