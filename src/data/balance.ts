@@ -138,6 +138,14 @@ export const BALANCE = {
     multPerCompletion: 1,
   },
 
+  /** Código secreto de un solo uso (Ajustes → Código secreto). */
+  cheat: {
+    code: 'CLIMAX39',
+    level: 39,
+    /** Recurso que da a cada lado, en «niveles de producción» del nivel anterior. */
+    resourceLevels: 0.5,
+  },
+
   achievements: {
     bonusEach: 0.02,
   },

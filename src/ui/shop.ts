@@ -24,6 +24,7 @@ export interface ShopActions {
   buy(side: SideId, p: Purchase, amount: number): void;
   buyBest(side: SideId): void;
   buyCondom(id: string): void;
+  cheat(code: string): void;
   prestige(): void;
   settingsChanged(): void;
   exportSave(): void;
@@ -561,6 +562,7 @@ export class ShopView {
       check(S.bigHit, set.bigHitArea, (v) => { set.bigHitArea = v; }),
       check(S.shake, set.screenShake, (v) => { set.screenShake = v; }),
       el('label', { class: 'setting' }, [el('span', {}, S.notation), notation]),
+      this.cheatField(st),
       el('div', { class: 'setting-buttons' }, [
         btn(S.export, () => this.actions.exportSave()),
         btn(S.import, () => this.actions.importSave()),
@@ -568,6 +570,17 @@ export class ShopView {
         btn(S.reset, () => this.actions.reset(), 'danger'),
       ]),
     );
+  }
+
+  private cheatField(st: GameState): HTMLElement {
+    const S = ES.ui.settings;
+    if (st.cheatUsed) return el('div', { class: 'setting muted' }, S.cheatUsed);
+    const input = el('input', { type: 'text', class: 'cheat-input', placeholder: S.cheatPlaceholder, autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false' }) as HTMLInputElement;
+    const go = el('button', { type: 'button', class: 'plain-btn' }, S.cheatTry);
+    const submit = () => { this.actions.cheat(input.value); input.value = ''; };
+    go.addEventListener('click', submit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+    return el('label', { class: 'setting cheat' }, [el('span', {}, S.cheat), el('div', { class: 'cheat-row' }, [input, go])]);
   }
 
   /** Para el resaltado de la pestaña con algo asequible. */

@@ -11,6 +11,7 @@ import { click, tick, type GameEvent } from '../systems/game';
 import { stageOf } from '../systems/levels';
 import { applyOffline, type OfflineReport } from '../systems/offline';
 import { canFinale, completeFinale } from '../systems/finale';
+import { applyCheat } from '../systems/cheat';
 import { FinaleScene } from './finale';
 import { canPrestige, doPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
@@ -55,6 +56,7 @@ export class App {
     this.shop = new ShopView(() => this.state, {
       buy: (side, p, amount) => this.onBuy(side, p, amount),
       buyBest: (side) => this.onBuyBest(side),
+      cheat: (code) => this.onCheat(code),
       buyCondom: (id) => {
         audio.play(buyCondomUpgrade(this.state, id) ? 'buy' : 'deny');
         this.shop.refresh(true);
@@ -300,6 +302,18 @@ export class App {
         this.shop.refresh(true);
       } },
     ]);
+  }
+
+  private onCheat(code: string) {
+    const S = ES.ui.settings;
+    const r = applyCheat(this.state, code);
+    if (r === 'wrong') { audio.play('deny'); this.toasts.show(S.cheatWrong, 'error'); return; }
+    if (r === 'used') { audio.play('deny'); this.toasts.show(S.cheatUsed, 'muted'); return; }
+    audio.play('stage');
+    this.toasts.show(S.cheatOk, 'big', 6000);
+    for (const id of SIDES) this.sides[id].announce(`${ES.ui.level} ${this.state.sides[id].level}!`);
+    saveToStorage(this.state);
+    this.shop.refresh(true);
   }
 
   /** Abre «La gran noche» (el paso final). */

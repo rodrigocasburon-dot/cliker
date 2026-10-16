@@ -603,3 +603,7 @@ button:disabled { cursor: not-allowed; }
   .head-btns { flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
   .head-btn { padding: 3px 7px; font-size: 12px; }
 }
+
+.setting.cheat { flex-direction: column; align-items: stretch; }
+.cheat-row { display: flex; gap: 6px; }
+.cheat-input { flex: 1; min-width: 0; background: var(--bg-2); color: var(--text); border: 2px solid var(--line); border-radius: 6px; padding: 6px; font-family: var(--mono); text-transform: uppercase; }

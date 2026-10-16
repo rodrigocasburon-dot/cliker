@@ -43,3 +43,6 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 ## Paso final («Sexo»)
 - Se implementa como un minijuego de ritmo que cierra el juego («La gran noche»), desbloqueado tras 3 reinicios. Mismo criterio visual que el resto: todo bajo las sábanas, con censura de broma y sin dibujar actos sexuales explícitos.
 - Es repetible y su recompensa es multiplicativa con la de reempezar, para que siga teniendo sentido tras el primer final.
+
+## Código secreto
+- Se introduce como texto en Ajustes (funciona igual en móvil que en escritorio). Código `CLIMAX39`, sin distinguir mayúsculas, espacios ni acentos. Un solo uso por partida guardada (`cheatUsed`, se conserva al reempezar). Sube ambos lados al 39 (nunca baja a un lado que ya esté más alto) y da 0.5 niveles de producción de recurso a cada lado; con eso se llega al 40 enseguida.
