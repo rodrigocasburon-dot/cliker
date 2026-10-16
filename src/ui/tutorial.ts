@@ -60,6 +60,7 @@ export class Tutorial {
       this.stepTime > 10,
       this.stepTime > 10 || state.stats.flies > 0,
       this.stepTime > 10,
+      this.stepTime > 10,
     ][this.step];
     if (done) this.advance();
   }

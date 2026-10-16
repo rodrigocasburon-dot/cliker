@@ -8,7 +8,7 @@ import { UPGRADES, type Effect, type UpgradeDef } from '../data/upgrades';
 import { CONDOM_UPGRADES } from '../data/condoms';
 import { ES, t } from '../i18n/es';
 import { achievementProgress } from '../systems/achievements';
-import { canPrestige, prestigePointsOnReset } from '../systems/prestige';
+import { canPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
 import {
   bestPurchase, condomCost, condomLevel, effectiveHumanCps, estimatedIncome, evaluatePurchase, generatorCost, isExcluded, isGeneratorUnlocked,
@@ -498,7 +498,9 @@ export class ShopView {
     const table = (list: [string, string][]) => el('dl', { class: 'kv' }, list.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
     const can = canPrestige(st);
     const pts = prestigePointsOnReset(st);
-    const pbtn = el('button', { class: 'prestige-btn', type: 'button' }, t(ES.ui.prestigeBtn, { p: pts }));
+    const ma = prestigeMultFor(st.prestigePoints);
+    const mb = prestigeMultFor(st.prestigePoints + pts);
+    const pbtn = el('button', { class: 'prestige-btn', type: 'button' }, can ? `${t(ES.ui.prestigeBtn, { p: pts })} · ×${ma.toFixed(2)} → ×${mb.toFixed(2)}` : t(ES.ui.prestigeBtn, { p: 0 }));
     pbtn.disabled = !can;
     pbtn.addEventListener('click', () => this.actions.prestige());
     const sig = JSON.stringify([rows.map(([n, v]) => [n, formatNumber(v, nt)]), multRows, stats, can, pts, this.side, total.toString().slice(0, 4)]);
@@ -509,7 +511,10 @@ export class ShopView {
       el('h3', {}, `${ES.ui.breakdown} — ${ES.sides[this.side].mascot}`), breakdown,
       el('h3', {}, s.multipliers), table(multRows),
       el('h3', {}, ES.ui.prestige),
-      el('p', { class: 'muted' }, can ? t(ES.ui.prestigeInfo, { p: pts, b: BALANCE.prestige.bonusPerPoint * 100, have: st.prestigePoints }) : ES.ui.prestigeLocked),
+      el('p', { class: 'muted' }, can
+        ? t(ES.ui.prestigeInfo, { a: ma.toFixed(2), b: mb.toFixed(2), p: pts, bp: BALANCE.prestige.bonusPerPoint * 100 })
+        : t(ES.ui.prestigeLocked, { n: BALANCE.prestige.requiredLevel })),
+      ...(can ? [el('p', { class: 'muted' }, ES.ui.prestigeKeep), el('p', { class: 'muted' }, t(ES.ui.prestigeMore, { n: nextPointLevel(st) }))] : []),
       pbtn,
       el('h3', {}, 'Partida'), table(stats),
     );

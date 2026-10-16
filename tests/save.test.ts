@@ -61,17 +61,33 @@ describe('guardado', () => {
 });
 
 describe('prestigio', () => {
-  it('solo se desbloquea con un lado al nivel 200 y da bonus permanente', () => {
+  it('se puede reempezar desde el nivel 40 y da más puntos cuanto más lejos se llega', () => {
     const s = createState(0);
+    s.sides.male.level = 39;
     expect(canPrestige(s)).toBe(false);
+    s.sides.male.level = 40;
+    expect(canPrestige(s)).toBe(true);
+    const at40 = prestigePointsOnReset(s);
+    expect(at40).toBeGreaterThanOrEqual(2);
+    s.sides.male.level = 80;
+    expect(prestigePointsOnReset(s)).toBeGreaterThan(at40 * 2);
+  });
+
+  it('da bonus permanente y conserva condones y logros', () => {
+    const s = createState(0);
+    s.achievements.clk1 = true;
+    s.condoms = 7;
     s.sides.male.level = 200;
     s.sides.female.level = 60;
-    expect(prestigePointsOnReset(s)).toBe(10 + 3);
+    // floor(10^1.4) + floor(3^1.4) = 25 + 4
+    expect(prestigePointsOnReset(s)).toBe(25 + 4);
     s.sides.male.generators.g1 = 1;
     const ppsBefore = computeRates(s, 'male').pps;
     doPrestige(s);
-    expect(s.prestigePoints).toBe(13);
+    expect(s.prestigePoints).toBe(29);
     expect(s.sides.male.level).toBe(1);
+    expect(s.condoms).toBe(7);
+    expect(s.achievements.clk1).toBe(true);
     s.sides.male.generators.g1 = 1;
     s.sides.male.level = 200;
     expect(computeRates(s, 'male').pps.gt(ppsBefore)).toBe(true);

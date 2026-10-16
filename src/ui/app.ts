@@ -10,7 +10,7 @@ import { catchFly } from '../systems/events';
 import { click, tick, type GameEvent } from '../systems/game';
 import { stageOf } from '../systems/levels';
 import { applyOffline, type OfflineReport } from '../systems/offline';
-import { canPrestige, doPrestige, prestigePointsOnReset } from '../systems/prestige';
+import { canPrestige, doPrestige, nextPointLevel, prestigeMultFor, prestigePointsOnReset } from '../systems/prestige';
 import { computeRates, type Rates } from '../systems/production';
 import { bestPurchase, buy, buyCondomUpgrade, buyGenerator, type Purchase } from '../systems/shop';
 import { el, setText } from './dom';
@@ -31,6 +31,7 @@ export class App {
   private tutorial: Tutorial;
   private goalText: HTMLElement;
   private prestigeBtn: HTMLButtonElement;
+  private prestigeWasAvailable = false;
   private muteBtn: HTMLButtonElement;
   private condomEl: HTMLButtonElement;
   private rates: Record<SideId, Rates>;
@@ -63,7 +64,7 @@ export class App {
     this.fly = new FlyView(() => this.onCatchFly());
     this.tutorial = new Tutorial(() => { this.state.tutorialDone = true; });
     this.goalText = el('span', { class: 'goal-text' });
-    this.prestigeBtn = el('button', { type: 'button', class: 'head-btn prestige-head', hidden: true }, `♻️ ${ES.ui.prestige}`);
+    this.prestigeBtn = el('button', { type: 'button', class: 'head-btn prestige-head', hidden: true, title: ES.ui.prestige }, '♻️');
     this.prestigeBtn.addEventListener('click', () => this.onPrestige());
     this.muteBtn = el('button', { type: 'button', class: 'head-btn', 'aria-label': ES.ui.settings.mute }, '🔊');
     this.muteBtn.addEventListener('click', () => { this.state.settings.muted = !this.state.settings.muted; this.applySettings(); });
@@ -104,6 +105,7 @@ export class App {
   }
 
   start(offline?: OfflineReport): void {
+    this.prestigeWasAvailable = canPrestige(this.state);
     if (offline && offline.elapsed >= BALANCE.offline.minSecondsToNotify) this.showOffline(offline);
     if (!this.state.tutorialDone) this.tutorial.start();
     if (this.state.fly) this.fly.show(this.state.fly.golden, this.state.settings.bigHitArea);
@@ -133,7 +135,16 @@ export class App {
     if (this.uiAcc >= 0.1) {
       this.uiAcc = 0;
       for (const id of SIDES) this.sides[id].updateStats(this.state, this.rates[id]);
-      this.prestigeBtn.hidden = !canPrestige(this.state);
+      const can = canPrestige(this.state);
+      this.prestigeBtn.hidden = !can;
+      if (can) {
+        const pts = this.state.prestigePoints;
+        setText(this.prestigeBtn, t(ES.ui.prestigeHead, { a: prestigeMultFor(pts).toFixed(2), b: prestigeMultFor(pts + prestigePointsOnReset(this.state)).toFixed(2) }));
+        if (!this.prestigeWasAvailable) {
+          this.prestigeWasAvailable = true;
+          this.toasts.show(ES.ui.toasts.prestigeReady, 'big', 6000);
+        }
+      }
       setText(this.condomEl, `🎈 ${this.state.condoms}`);
     }
     if (this.shopAcc >= 0.25) {
@@ -254,14 +265,23 @@ export class App {
   private onPrestige() {
     if (!canPrestige(this.state)) return;
     const p = prestigePointsOnReset(this.state);
-    openModal(ES.ui.prestige, [ES.ui.prestigeConfirm, t(ES.ui.prestigeInfo, { p, b: BALANCE.prestige.bonusPerPoint * 100, have: this.state.prestigePoints })], [
+    const a = prestigeMultFor(this.state.prestigePoints);
+    const b = prestigeMultFor(this.state.prestigePoints + p);
+    const body = [
+      t(ES.ui.prestigeInfo, { a: a.toFixed(2), b: b.toFixed(2), p, bp: BALANCE.prestige.bonusPerPoint * 100 }),
+      ES.ui.prestigeKeep,
+      ...(nextPointLevel(this.state) < BALANCE.maxLevel ? [t(ES.ui.prestigeMore, { n: nextPointLevel(this.state) })] : []),
+      ES.ui.prestigeConfirm,
+    ];
+    openModal(ES.ui.prestige, body, [
       { label: ES.ui.close },
       { label: t(ES.ui.prestigeBtn, { p }), primary: true, onClick: () => {
         doPrestige(this.state);
+        this.prestigeWasAvailable = false;
         this.fly.hide();
         audio.stopBuzz();
         audio.play('prestige');
-        this.toasts.show(t(ES.ui.toasts.prestiged, { p }), 'big');
+        this.toasts.show(t(ES.ui.toasts.prestiged, { m: b.toFixed(2) }), 'big');
         saveToStorage(this.state);
         this.shop.refresh(true);
       } },

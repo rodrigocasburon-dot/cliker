@@ -24,7 +24,7 @@ Ambigüedades resueltas con la opción más simple (ver prompt §0.4).
 
 ## Offline y prestigio
 - **Offline**: se simula la ausencia en hasta 400 tramos (producción pasiva + automatización, sin moscas ni combos) para que cuenten las subidas de nivel; tope 8 h; aviso al volver si fueron > 60 s. También se aplica si la pestaña estuvo oculta.
-- **Prestigio**: disponible con un lado al nivel 200; reinicia ambos lados; puntos = Σ floor(nivel/20) por lado (20 con ambos al 200); cada punto +25 % a toda la producción. Se conservan logros, ajustes y estadísticas.
+- **Prestigio («Reempezar con multiplicador»)**: al principio solo al nivel 200; ahora desde el nivel 40, con puntos Σ floor((nivel/20)^1.4) para que llegar más lejos compense más que reempezar muchas veces muy pronto. Cada punto +25 % a toda la producción. Se conservan logros, condones, ajustes y estadísticas.
 
 ## Arte y audio
 - Sin assets externos: sprites pixel art procedurales dibujados en canvas a baja resolución. El arte final se declara en `assets/assets.json` (tira de 9 fotogramas, uno por etapa); así no se piden archivos inexistentes y no hay 404 en consola.

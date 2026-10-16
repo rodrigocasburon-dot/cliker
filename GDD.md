@@ -111,7 +111,7 @@ En la partida simulada (con muchas moscas atrapadas) se ganan ~8 000 condones ha
 
 ### 4.8 Offline, prestigio y logros
 - Offline: producción pasiva + automatización mientras no se juega (también con la pestaña oculta), con tope de 8 h y aviso de bienvenida con lo ganado y los niveles subidos.
-- Prestigio: con un lado al nivel 200. Puntos = Σ floor(nivel / 20) por lado (20 con ambos al 200). Cada punto: +25 % a toda la producción para siempre.
+- **Reempezar con multiplicador** (prestigio): disponible con un lado al nivel 40. Puntos = Σ floor((nivel / 20)^1.4) por lado; cada punto +25 % a toda la producción para siempre. Ejemplos: ambos lados al 40 → 4 puntos (×2); al 60 → 8 (×3); al 100 → 18 (×5.5); al 200 → 50 (×13.5). Al ser más que lineal, aguantar más antes de reempezar compensa, y reempezar pronto sirve para salir de un tramo lento. Se conservan condones y sus mejoras, logros, estadísticas y ajustes.
 - 36 logros (clicks, producción total, niveles, ambos lados, moscas, moscas doradas, generadores, elecciones, prestigios): +2 % de producción cada uno y XP extra.
 
 ## 5. Los cuatro pilares (implementación)

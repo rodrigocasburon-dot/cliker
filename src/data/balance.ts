@@ -107,10 +107,15 @@ export const BALANCE = {
     perLevel: 0.003,
   },
 
+  /**
+   * Reempezar con multiplicador (prestigio): disponible cuando un lado llega a `requiredLevel`.
+   * Puntos = Σ floor((nivel / levelsPerPoint)^exponent) de cada lado: crecen más rápido que el
+   * nivel, así que aguantar más antes de reempezar compensa. Cada punto: +bonusPerPoint a todo.
+   */
   prestige: {
-    requiredLevel: 200,
-    /** Puntos = suma de floor(nivel / levelsPerPoint) de cada lado. */
+    requiredLevel: 40,
     levelsPerPoint: 20,
+    exponent: 1.4,
     bonusPerPoint: 0.25,
   },
 

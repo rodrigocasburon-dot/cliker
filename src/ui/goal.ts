@@ -15,7 +15,7 @@ function purchaseName(side: SideId, p: Purchase): string {
 /** Texto del «siguiente objetivo» para un lado: qué persigo y por qué. */
 export function nextGoal(state: GameState, id: SideId): string {
   const side = state.sides[id];
-  if (canPrestige(state)) {
+  if (canPrestige(state) && Math.max(state.sides.male.level, state.sides.female.level) >= BALANCE.maxLevel) {
     const both = state.sides.male.level >= BALANCE.maxLevel && state.sides.female.level >= BALANCE.maxLevel;
     return both ? ES.ui.goalDone : ES.ui.goalPrestige;
   }

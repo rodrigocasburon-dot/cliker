@@ -55,7 +55,7 @@ El simulador usa exactamente la misma lógica que el juego (`src/systems`) y mar
 - **Sobreuso 🌡️**: cada lado tiene un termómetro. Si machacas un lado sin parar, se recalienta y le da un problema durante unos 25 s (al Cohete, dolor de huevos; a la Almeja, la regla): sus clicks rinden al 10 % y el piloto automático va a medias. A un ritmo normal no pasa nada.
 - **Skins**: la mascota crece con cada nivel, cambia de paleta y accesorios cada 25 niveles y además luce lo que has comprado: antena (automatización), cinta (mejoras de click), ribete dorado, corazón (química), matamoscas (mejoras de la mosca) y globo-condón.
 - **Offline**: al volver recibes lo producido mientras no estabas (máximo 8 h).
-- **Nivel 200** en un lado: **prestigio**. Reinicia ambos lados a cambio de puntos que dan +25 % de producción permanente cada uno.
+- **♻️ Reempezar con multiplicador** (desde el nivel 40 en cualquier lado): ambos lados vuelven al nivel 1, pero toda la producción (generadores, clicks y automatización) queda multiplicada para siempre. Cada punto da +25 %, y los puntos crecen más rápido que el nivel (por ejemplo, ambos lados al 60 dan ×3; al 200, ×13.5), así que aguantar más compensa. Se conservan los condones y sus mejoras, los logros y los ajustes. El botón ♻️ de la cabecera muestra el multiplicador actual y el que tendrías.
 - Ajustes: volumen de efectos y música, silencio, desactivar moscas (la automatización recibe ×1.15 fijo), área de toque grande, sacudidas, notación numérica, exportar/importar/borrar partida.
 
 La partida se guarda sola en `localStorage` cada 10 s y al cerrar la pestaña.
